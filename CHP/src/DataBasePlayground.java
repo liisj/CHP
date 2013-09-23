@@ -11,10 +11,7 @@ public class DataBasePlayground {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static String statementSetOrders = "SELECT d.med_name, o.unit_number, d.unit, d.id"
-			+ " FROM orders o, drugs d"
-			+ " WHERE o.drug_id = d.id"
-			+ " AND o.facility_id = ?" + " ORDER BY d.id ASC";
+	static PreparedStatement statementGetOrders = null;
 
 	static PreparedStatement statementPutOrder = null;
 
@@ -33,11 +30,26 @@ public class DataBasePlayground {
 		}
 		return null;
 	}
-
-	public static void initPutOrders(Connection con) {
+	
+	/*###########################################
+	 *       ORDER MANAGEMENT SECTION
+	 ############################################*/
+	
+	/**
+	 * This function initializes the prepared Statements.
+	 * @param con The database connection
+	 */
+	public static void init(Connection con) {
 		try {
 			statementPutOrder = con.prepareStatement("INSERT INTO orders "
-					+ "(facility_id,drug_id,unit_number) VALUES (?,?,?)");
+					+ "(facility_id,drug_id,unit_number)"
+					+ " VALUES (?,?,?)");
+			statementGetOrders = con.prepareStatement("SELECT o.id, d.med_name,"
+					+ " o.unit_number, d.unit, d.id"
+					+ " FROM orders o, drugs d"
+					+ " WHERE o.drug_id = d.id"
+					+ " AND o.facility_id = ?"
+					+ " ORDER BY o.id ASC");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -50,7 +62,7 @@ public class DataBasePlayground {
 	 */
 	public static void putOrders(int[][] orders) {
 		if (statementPutOrder == null) {
-			System.err.println("Init the action, dude.. (initPutOrders)");
+			System.err.println("Init the statements, dude.. (init())");
 			return;
 		}
 		try {
@@ -66,20 +78,29 @@ public class DataBasePlayground {
 		}
 	}
 
+	
+	/**
+	 * 
+	 * @param con
+	 * @param facility_id
+	 */
 	public static void getOrders(Connection con, int facility_id) {
-		PreparedStatement pstmt;
+		if (statementPutOrder == null) {
+			System.err.println("Init the statements, dude.. (init())");
+			return;
+		}
 		try {
-			pstmt = con.prepareStatement(statementSetOrders);
-			pstmt.setInt(1, facility_id);
-			ResultSet rs = pstmt.executeQuery();
+			statementGetOrders.setInt(1, facility_id);
+			ResultSet rs = statementGetOrders.executeQuery();
 			String med_name, unit;
-			int unit_number, id;
+			int unit_number, drug_id, order_id;
 			while (rs.next()) {
-				med_name = rs.getString(1);
-				unit_number = rs.getInt(2);
-				unit = rs.getString(3);
-				id = rs.getInt(4);
-				System.out.println(id + ": " + med_name + " | " + unit_number
+				order_id = rs.getInt(1);
+				med_name = rs.getString(2);
+				unit_number = rs.getInt(3);
+				unit = rs.getString(4);
+				drug_id = rs.getInt(5);
+				System.out.println("Order " + order_id + ":   " + drug_id + ": " + med_name + " | " + unit_number
 						+ "x " + unit);
 			}
 		} catch (SQLException e) {
@@ -89,6 +110,7 @@ public class DataBasePlayground {
 
 	public static void main(String[] args) {
 		Connection con = DataBasePlayground.getConnection();
+		DataBasePlayground.init(con);
 		DataBasePlayground.getOrders(con, 1);
 		int[][] orders = {{1,2,1},{1,3,1},{1,1,1}};
 //		DataBasePlayground.putOrders(orders); //should fail
