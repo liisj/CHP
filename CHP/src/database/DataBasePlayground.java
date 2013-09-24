@@ -1,3 +1,4 @@
+package database;
 import java.sql.*;
 import java.util.Calendar;
 import java.util.Properties;
@@ -118,9 +119,9 @@ public class DataBasePlayground {
 	public static void main(String[] args) {
 		Connection con = DataBasePlayground.getConnection();
 		DataBasePlayground.init(con);
+		int[][] orders = {{1,2,10},{1,3,10},{1,1,10}};
+		DataBasePlayground.putOrders(orders); //should fail
 		DataBasePlayground.getOrders(1);
-		int[][] orders = {{1,2,1},{1,3,1},{1,1,1}};
-//		DataBasePlayground.putOrders(orders); //should fail
 //		DataBasePlayground.initPutOrders(con);
 //		DataBasePlayground.putOrders(orders);
 		try {
