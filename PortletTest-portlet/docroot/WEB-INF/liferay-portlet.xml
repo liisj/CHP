@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE liferay-portlet-app PUBLIC "-//Liferay//DTD Portlet Application 6.1.0//EN" "http://www.liferay.com/dtd/liferay-portlet-app_6_1_0.dtd">
+
+<liferay-portlet-app>
+	<portlet>
+		<portlet-name>PortletTest</portlet-name>
+		<icon>/icon.png</icon>
+		<header-portlet-css>/css/main.css</header-portlet-css>
+		<footer-portlet-javascript>/js/main.js</footer-portlet-javascript>
+		<css-class-wrapper>PortletTest-portlet</css-class-wrapper>
+	</portlet>
+	<portlet>
+		<portlet-name>newportlet2</portlet-name>
+		<icon>/icon.png</icon>
+		<use-default-template>false</use-default-template>
+		<instanceable>false</instanceable>
+		<header-portlet-css>/css/screen.css</header-portlet-css>
+		<header-portlet-css>/css/main.css</header-portlet-css>
+		<header-portlet-css>/css/custom-theme/jquery-ui-1.8.16.custom.css</header-portlet-css>
+		<header-portlet-css>/css/custom-theme/images</header-portlet-css>
+		
+		
+		<header-portlet-javascript>http://code.jquery.com/jquery-latest.js</header-portlet-javascript>
+		<header-portlet-javascript>http://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.min.js</header-portlet-javascript>
+		<header-portlet-javascript>/js/jquery-ui-1.8.16.custom.min.js</header-portlet-javascript>
+		<header-portlet-javascript>/js/main.js</header-portlet-javascript>
+		<header-portlet-javascript>/js/index.js</header-portlet-javascript>
+		<css-class-wrapper>newportlet2-portlet</css-class-wrapper>
+	</portlet>
+	<role-mapper>
+		<role-name>administrator</role-name>
+		<role-link>Administrator</role-link>
+	</role-mapper>
+	<role-mapper>
+		<role-name>guest</role-name>
+		<role-link>Guest</role-link>
+	</role-mapper>
+	<role-mapper>
+		<role-name>power-user</role-name>
+		<role-link>Power User</role-link>
+	</role-mapper>
+	<role-mapper>
+		<role-name>user</role-name>
+		<role-link>User</role-link>
+	</role-mapper>
+</liferay-portlet-app>
