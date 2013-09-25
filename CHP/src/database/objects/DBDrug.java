@@ -1,13 +1,13 @@
-package tests;
+package database.objects;
 
 public class DBDrug {
-	int id;
-	int msdcode;
-	String med_name;
-	String common_name;
-	String unit;
-	String unit_details;
-	String unit_price;
+	public int id;
+	public int msdcode;
+	public String med_name;
+	public String common_name;
+	public String unit;
+	public String unit_details;
+	public String unit_price;
 	
 	public DBDrug(int id, int msdcode, String med_name, String common_name,
 			String unit, String unit_details, String unit_price) {

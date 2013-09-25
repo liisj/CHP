@@ -6,11 +6,13 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 import database.DataBasePlayground;
+import database.objects.DBDrug;
 
 public class ButtonListener implements ActionListener {
 
@@ -34,8 +36,9 @@ public class ButtonListener implements ActionListener {
 		DBDrug drug = new DBDrug(-1, msdcode==null?-1:Integer.valueOf(msdcode), medName, 
 				comName, unit, unitDetails, null);
 		
-		Date start = date1Text==null?null:java.sql.Date.valueOf(date1Text);
-		Date end = date2Text==null?null:java.sql.Date.valueOf(date2Text);
+		
+		Timestamp start = date1Text==null?null:java.sql.Timestamp.valueOf(date1Text);
+		Timestamp end = date2Text==null?null:java.sql.Timestamp.valueOf(date2Text);
 		
 		DBOrderSearch dbos = new DBOrderSearch(facText,drug,start,end);
 		try {
