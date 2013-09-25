@@ -10,8 +10,6 @@ import java.sql.SQLException;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-import database.DBDrug;
-import database.DBOrderSearch;
 import database.DataBasePlayground;
 
 public class ButtonListener implements ActionListener {
@@ -45,6 +43,7 @@ public class ButtonListener implements ActionListener {
 			ResultSet rs = ps.executeQuery();
 			TableModel model = DBTestGUI.table.getModel();
 			DefaultTableModel a = (DefaultTableModel) model;
+			a.setRowCount(0);
 			while (rs.next()) {
 				int order_id = rs.getInt(1);
 				String facility = rs.getString(2);

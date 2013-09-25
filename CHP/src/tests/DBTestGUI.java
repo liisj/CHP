@@ -3,16 +3,6 @@ package tests;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.DataBufferShort;
-import java.beans.PropertyChangeListener;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,13 +11,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import javax.xml.ws.handler.MessageContext.Scope;
-
-import database.DBDrug;
-import database.DBOrderSearch;
-import database.DataBasePlayground;
 
 public class DBTestGUI {
 	
@@ -91,6 +74,8 @@ public class DBTestGUI {
 		editPanel.add(orderField2);//4
 		editPanel.add(labelFac);
 		editPanel.add(facField);
+		editPanel.add(msdCodeLabel);
+		editPanel.add(msdCodeField);
 		editPanel.add(medNameLabel);
 		editPanel.add(medNameField);//8
 		editPanel.add(commonNameLabel);

@@ -1,4 +1,4 @@
-package database;
+package tests;
 
 public class DBDrug {
 	int id;

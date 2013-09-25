@@ -1,4 +1,4 @@
-package database;
+package tests;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -71,7 +71,6 @@ public class DBOrderSearch {
 				wh += (c>0?" AND ":"WHERE ") + "d.unit_details LIKE ('%'||?||'%')";
 		}
 		
-		System.out.println(select+from+wh);
 		PreparedStatement pstmt2 = con.prepareStatement(select+from+wh);
 		
 		int p = 1;
