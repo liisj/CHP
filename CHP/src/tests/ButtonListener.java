@@ -40,24 +40,41 @@ public class ButtonListener implements ActionListener {
 		Timestamp start = date1Text==null?null:java.sql.Timestamp.valueOf(date1Text);
 		Timestamp end = date2Text==null?null:java.sql.Timestamp.valueOf(date2Text);
 		
-		DBOrderSearch dbos = new DBOrderSearch(facText,drug,start,end);
+//		DBOrderSearch dbos = new DBOrderSearch(facText,drug,start,end);
+//		try {
+//			PreparedStatement ps = dbos.giveSearchStatement(DataBasePlayground.getConnection());
+//			ResultSet rs = ps.executeQuery();
+//			TableModel model = DBTestGUI.table.getModel();
+//			DefaultTableModel a = (DefaultTableModel) model;
+//			a.setRowCount(0);
+//			while (rs.next()) {
+//				int order_id = rs.getInt(1);
+//				String facility = rs.getString(2);
+//				String drugName = rs.getString(3);
+//				Date date = rs.getDate(4);
+//				
+//				a.addRow(new Object[]{order_id,facility,drugName,date});
+//			}
+//			
+//		} catch (SQLException e1) {
+//			e1.printStackTrace();
+//		}
+		
 		try {
-			PreparedStatement ps = dbos.giveSearchStatement(DataBasePlayground.getConnection());
-			ResultSet rs = ps.executeQuery();
+			Object[][] bla = DBOrderSearch.search(facText, drug, start, end);
 			TableModel model = DBTestGUI.table.getModel();
 			DefaultTableModel a = (DefaultTableModel) model;
 			a.setRowCount(0);
-			while (rs.next()) {
-				int order_id = rs.getInt(1);
-				String facility = rs.getString(2);
-				String drugName = rs.getString(3);
-				Date date = rs.getDate(4);
-				
-				a.addRow(new Object[]{order_id,facility,drugName,date});
+			a.setColumnIdentifiers(bla[0]);
+			for (int i = 1 ; i<bla.length ; i++) {
+				a.addRow(bla[i]);
 			}
-			
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
+		
+		
+		
+		
 	}
 }

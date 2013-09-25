@@ -81,37 +81,6 @@ public class DataBasePlayground {
 		}
 	}
 	
-	/**
-	 * 
-	 * @param con
-	 * @param facility_id
-	 */
-	public static void getOrders(int facility_id) {
-		if (statementPutOrder == null) {
-			System.err.println("Init the statements, dude.. (init())");
-			return;
-		}
-		try {
-			statementGetOrders.setInt(1, facility_id);
-			ResultSet rs = statementGetOrders.executeQuery();
-			String med_name, unit;
-			int unit_number, drug_id, order_id;
-			Date order_date;
-			while (rs.next()) {
-				order_id = rs.getInt(1);
-				med_name = rs.getString(2);
-				unit_number = rs.getInt(3);
-				unit = rs.getString(4);
-				drug_id = rs.getInt(5);
-				order_date = rs.getDate(6);
-				System.out.println(order_date + " - Order " + order_id + ":   " + drug_id + ": " + med_name + " | " + unit_number
-						+ "x " + unit);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static void deleteOrder(int order_id) {
 		
 	}
@@ -121,7 +90,6 @@ public class DataBasePlayground {
 		DataBasePlayground.init(con);
 		int[][] orders = {{1,2,10},{1,3,10},{1,1,10}};
 		DataBasePlayground.putOrders(orders); //should fail
-		DataBasePlayground.getOrders(1);
 //		DataBasePlayground.initPutOrders(con);
 //		DataBasePlayground.putOrders(orders);
 		try {

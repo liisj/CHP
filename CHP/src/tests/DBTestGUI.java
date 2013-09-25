@@ -53,17 +53,10 @@ public class DBTestGUI {
 		unitField = new JTextField("");
 		unitDetailsField = new JTextField("");
 		
-		Object[][] rowValues = new Object[10][4];
-		String[] columnNames = {
-		        "Order id", "Facility", "Drug", "Date"
-		    };
-		table = new JTable(rowValues,columnNames);
+		table = new JTable();
 		table.setModel(new DefaultTableModel());
 		DefaultTableModel model = ((DefaultTableModel) table.getModel());
-		model.addColumn("Order id");
-		model.addColumn("Facility");
-		model.addColumn("Drug");
-		model.addColumn("Date");
+		model.addColumn("This table is awesome, like Peach");
 		JScrollPane scrollPane = new JScrollPane(table);
 		table.setFillsViewportHeight(true); 
 //		scrollPane.setSize(200, 400);
