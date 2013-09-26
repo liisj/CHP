@@ -2,6 +2,7 @@ package tests;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +12,7 @@ import java.sql.Timestamp;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import database.DataBaseFunctions;
 import database.DataBasePlayground;
 import database.objects.DBDrug;
 
@@ -61,7 +63,8 @@ public class ButtonListener implements ActionListener {
 //		}
 		
 		try {
-			Object[][] bla = DBOrderSearch.search(facText, drug, start, end);
+			Connection con = new DataBaseFunctions().getConnection();
+			Object[][] bla = DataBaseFunctions.search(con,facText, drug, start, end);
 			TableModel model = DBTestGUI.table.getModel();
 			DefaultTableModel a = (DefaultTableModel) model;
 			a.setRowCount(0);
