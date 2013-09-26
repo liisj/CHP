@@ -13,7 +13,6 @@ public class DataBasePlayground {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static PreparedStatement statementGetOrders = null;
 
 	static PreparedStatement statementPutOrder = null;
 
@@ -46,12 +45,6 @@ public class DataBasePlayground {
 			statementPutOrder = con.prepareStatement("INSERT INTO orders "
 					+ "(facility_id,drug_id,unit_number,date)"
 					+ " VALUES (?,?,?,?)");
-			statementGetOrders = con.prepareStatement("SELECT o.id, d.med_name,"
-					+ " o.unit_number, d.unit, d.id, o.date"
-					+ " FROM orders o, drugs d"
-					+ " WHERE o.drug_id = d.id"
-					+ " AND o.facility_id = ?"
-					+ " ORDER BY o.id ASC");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
