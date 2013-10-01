@@ -3,9 +3,6 @@ package tests;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
@@ -13,7 +10,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 import database.DataBaseFunctions;
-import database.DataBasePlayground;
 import database.objects.DBDrug;
 
 public class ButtonListener implements ActionListener {
