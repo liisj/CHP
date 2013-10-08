@@ -9,6 +9,9 @@ import java.sql.Timestamp;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import database.DataBaseFunctions;
 import database.objects.DBDrug;
 
@@ -30,43 +33,30 @@ public class ButtonListener implements ActionListener {
 		String unit = ifEmptyNull(DBTestGUI.unitField.getText());
 		String unitDetails = ifEmptyNull(DBTestGUI.unitDetailsField.getText());
 		
+		JSONObject input = new JSONObject();
+		input.put("facility_name", facText);
+		input.put("order_start", date1Text);
+		input.put("order_end", date2Text);
+		input.put("drug_med_name", medName);
+		input.put("drug_common_name", comName);
+		input.put("drug_msdcode", msdcode);
+		input.put("drug_unit", unit);
+		input.put("drug_unit_details", unitDetails);
 		
-		DBDrug drug = new DBDrug(-1, msdcode==null?-1:Integer.valueOf(msdcode), medName, 
-				comName, unit, unitDetails, null);
-		
-		
-		Timestamp start = date1Text==null?null:java.sql.Timestamp.valueOf(date1Text);
-		Timestamp end = date2Text==null?null:java.sql.Timestamp.valueOf(date2Text);
-		
-//		DBOrderSearch dbos = new DBOrderSearch(facText,drug,start,end);
-//		try {
-//			PreparedStatement ps = dbos.giveSearchStatement(DataBasePlayground.getConnection());
-//			ResultSet rs = ps.executeQuery();
-//			TableModel model = DBTestGUI.table.getModel();
-//			DefaultTableModel a = (DefaultTableModel) model;
-//			a.setRowCount(0);
-//			while (rs.next()) {
-//				int order_id = rs.getInt(1);
-//				String facility = rs.getString(2);
-//				String drugName = rs.getString(3);
-//				Date date = rs.getDate(4);
-//				
-//				a.addRow(new Object[]{order_id,facility,drugName,date});
-//			}
-//			
-//		} catch (SQLException e1) {
-//			e1.printStackTrace();
-//		}
 		
 		try {
-			Connection con = new DataBaseFunctions().getConnection();
-			Object[][] bla = DataBaseFunctions.search(con,facText, drug, start, end);
+			Connection con = DataBaseFunctions.getWebConnection();
+			JSONArray bla = DataBaseFunctions.search(con,input);
+			Object[][] hm = new Object[bla.size()][];
+
+			
+			
 			TableModel model = DBTestGUI.table.getModel();
 			DefaultTableModel a = (DefaultTableModel) model;
 			a.setRowCount(0);
-			a.setColumnIdentifiers(bla[0]);
-			for (int i = 1 ; i<bla.length ; i++) {
-				a.addRow(bla[i]);
+			a.setColumnIdentifiers(((JSONObject)bla.get(0)).keySet().toArray());
+			for (int i = 1 ; i<hm.length ; i++) {
+				a.addRow(((JSONObject)bla.get(i)).values().toArray());
 			}
 		} catch (SQLException e1) {
 			e1.printStackTrace();

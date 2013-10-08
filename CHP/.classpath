@@ -13,5 +13,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/CHP/doc/commons-pool-1.6-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/json_simple.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
