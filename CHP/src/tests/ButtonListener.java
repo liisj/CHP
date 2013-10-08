@@ -13,7 +13,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import database.DataBaseFunctions;
-import database.objects.DBDrug;
 
 public class ButtonListener implements ActionListener {
 
