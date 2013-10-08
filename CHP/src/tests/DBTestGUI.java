@@ -88,7 +88,7 @@ public class DBTestGUI {
 		frame.getContentPane().add(scrollPane,BorderLayout.CENTER);
 		frame.getContentPane().add(button,BorderLayout.SOUTH);
 		frame.pack();
-		frame.setSize(new Dimension(400, 500));
+		frame.setSize(new Dimension(800, 500));
 		frame.setVisible(true);
 		
 		

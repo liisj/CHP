@@ -17,10 +17,17 @@ public class DataBaseFunctions {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static final String selectOrder = "SELECT " + "o.id," + "o.timestamp,"
-			+ "o.unit_number," + "o.status," + "d.id," + "d.category,"
-			+ "d.med_name," + "d.common_name," + "d.unit," + "d.unit_details,"
-			+ "d.unit_price," + "f.id," + "f.name";
+	static final String selectOrder = "SELECT " + "o.id AS Order_ID,"
+			+ "o.timestamp AS Order_Timestamp,"
+			+ "o.unit_number AS Ordered_Unit_Number,"
+			+ "o.status AS Order_Status," + "d.id AS Drug_ID,"
+			+ "d.category AS Drug_Category,"
+			+ "d.med_name AS Drug_Medical_Name,"
+			+ "d.common_name AS Drug_Common_Name,"
+			+ "d.unit AS Drug_Ordering_Unit,"
+			+ "d.unit_details AS Drug_Unit_Details,"
+			+ "d.unit_price as Drug_Price_per_Unit," + "f.id AS Facility_ID,"
+			+ "f.name AS Facility_Name";
 	static final String fromOrder = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
 			+ "JOIN drugs d ON o.drug_id = d.id ";
 
@@ -39,7 +46,8 @@ public class DataBaseFunctions {
 	 * Transforms the rows, received through the given ResultSet, into
 	 * JSONObjects and returns them as a JSONArray
 	 * 
-	 * @param resultSet ResultSet to be transformed
+	 * @param resultSet
+	 *            ResultSet to be transformed
 	 * @return JSONArray containing JSONObjects
 	 * @throws SQLException
 	 */
@@ -64,35 +72,26 @@ public class DataBaseFunctions {
 			JSONObject jsonRow = new JSONObject();
 			for (int columnIndex = 1; columnIndex <= columnNumber; columnIndex++) {
 				String columnName = columnNames[columnIndex - 1];
-				System.out.println("");
-				System.out.print(columnNames[columnIndex - 1] + ": ");
 				switch (columnTypes[columnIndex - 1]) {
 				case Types.INTEGER:
 					jsonRow.put(columnName, resultSet.getInt(columnIndex));
-					System.out.print(resultSet.getInt(columnIndex) + " ");
 					break;
 				case Types.TIMESTAMP:
 					jsonRow.put(columnName, resultSet.getTimestamp(columnIndex));
-					System.out.print(resultSet.getTimestamp(columnIndex) + " ");
 					break;
 				case Types.VARCHAR:
 				case Types.CHAR:
 					jsonRow.put(columnName, resultSet.getString(columnIndex));
-					System.out.print(resultSet.getString(columnIndex) + " ");
 					break;
 				case Types.NUMERIC:
 				case Types.DOUBLE:
 					jsonRow.put(columnName, resultSet.getDouble(columnIndex));
-					System.out.print(resultSet.getDouble(columnIndex) + " ");
 					break;
 				default:
 					jsonRow.put(columnName, resultSet.getObject(columnIndex));
-					System.out.print(resultSet.getObject(columnIndex) + " ");
 					break;
 				}
 			}
-			System.out.println("");
-			System.out.println(jsonRow);
 			resultArray.add(jsonRow);
 		}
 		return resultArray;
