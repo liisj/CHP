@@ -3,5 +3,16 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="lib/postgresql-9.2-1003.jdbc4.jar"/>
+	<classpathentry kind="lib" path="lib/commons-dbcp-1.4.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/CHP/doc/commons-dbcp-1.4-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/commons-pool-1.6.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/CHP/doc/commons-pool-1.6-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/json_simple.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
