@@ -25,7 +25,7 @@ p {padding: 5px 0;}
 	position: relative;
 	overflow: hidden;
 }
-*html #main { height: 724px; overflow: visible;}
+#main { height: 724px; overflow: visible;}
 .container {
 	margin: 0 auto;
 	width: 100%;
@@ -51,7 +51,8 @@ p {padding: 5px 0;}
 	background: -ms-linear-gradient(top, #FEFEFE 0%,whiteSmoke 50%,#E6E6E6 100%);
 	background: linear-gradient(top, #FEFEFE 0%, whiteSmoke 50%, #E6E6E6 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefefe', endColorstr='#e6e6e6',GradientType=0 );
-	height: 70px;
+	height: 90px;
+	font-size: 12px;
 }
 .centerWrap {
 	max-width: 1230px;
@@ -68,7 +69,7 @@ p {padding: 5px 0;}
 	height: 36px;
 	text-indent: -4000px;
 	overflow: hidden;
-	background-image: url(../images/137_DMA_blue_NEW.png);
+	background-image: url(custom-theme/images/137_DMA_blue_NEW.png);
 	background-repeat: no-repeat;
 	float: left;
 	width: 135px;
@@ -99,8 +100,8 @@ p {padding: 5px 0;}
 }
 
 /*--Content Property---------------*/
-#content {
-	float: left;
+#inner-content {
+	
 	padding-top: 0px;
 	padding-right: 0px;
 	padding-bottom: 0px;
@@ -140,7 +141,7 @@ p {padding: 5px 0;}
 }
 
 #submodules{
-	margin-left: 323px;
+	margin-left: 188px;
 	list-style: none;
 	display: inline;
 	float: left;
@@ -182,7 +183,7 @@ p {padding: 5px 0;}
 
 .trow{
 	width:100%;
-	height: 110px;
+	height: 145px;
 	border-bottom-style: solid;
 	border-bottom-width: thin;		
 }

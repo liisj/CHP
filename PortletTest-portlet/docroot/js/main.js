@@ -204,10 +204,10 @@ $(document).on("click",".IncPackChkbox",function(){							//Called when a checkb
 /* <--------- Function calls ---------> */
 
 function showDrugs(){ 														//Retrieves drug information from DB and displays it to the user
-	$("#statusgif").show();
-	var dbViewUri = "_design/" + clientDoc + "/_view/by_cat";
 	
 	/* TODO
+	$("#statusgif").show();
+	var dbViewUri = "_design/" + clientDoc + "/_view/by_cat";
 	var request = $.getJSON(dbUrl + "/" + dbName + "/" + dbViewUri,encodeURI("key=\"" + sideEl + "\""));	
 	request.done(function(data){
 		$("#statusgif").hide();
@@ -350,9 +350,12 @@ function sendOrder(){														//Sends order information to the DMA server
 }
 
 function loadDrugCategories () {											//Retrieves from DMA server the category names and displays them in side bar
+	
+	
+	/* TODO
 	$("#statusgif").show();
 	var dbViewUri = "_design/" + clientDoc + "/_view/getCategoryNames";
-	/* TODO
+	
 	var request = $.getJSON(dbUrl + "/" + dbName + "/" + dbViewUri);
 	request.done(function(data){
 		var drugCat = new Array(data.rows.length);

@@ -3,7 +3,9 @@
 <portlet:renderURL var="updateBookURL">
 	<portlet:param name="jspPage" value="/html/newportlet2/update.jsp"/>
 </portlet:renderURL>
+<!-- 
 <br/><a href="<%= updateBookURL %>">Add new Book &raquo;</a>
+ -->
 
 <!--  code from DMA, index.html -->
 <!DOCTYPE HTML>
@@ -12,9 +14,49 @@
 	<meta charset="utf-8">
     <link rel="shortcut icon" href="./favicon.ico"/>    
 	<title>DMA App</title>
+	
+	<script>	// DMA code from index.html
+
+	$(function() {
+		$("button").button();
+		$(".dialog-messages").hide();
+		$('#modules').buttonset();
+		$('#submodules').buttonset();
+		$("#Order")
+			.button( {
+				icons: {
+					primary: null,
+					secondary: "ui-icon-triangle-1-s"
+				}
+			});
+		$(".optBtn")
+			.button( {
+				label: "Incoming Package",
+				icons: {
+					primary: "ui-icon-cart"
+				}
+			});
+		$("#clearBtn")
+			.button( {
+				label: "Clear",
+				icons: {
+					primary: "ui-icon-trash"
+				}
+			});
+		$("#backBtn")
+			.button( {
+				label: "Back",
+				icons: {
+					primary: "ui-icon-circle-arrow-w"
+				}
+			});				
+	});	
+</script>
 </head>
 
 <body>
+
+
 
 	<div id="main" class="container">
         <div id="header">
@@ -29,7 +71,7 @@
 				<button id= "backBtn"></button>
 				<button id= "IncPack" class="optBtn"></button>				
 			</div>
-			<img src="/css/custom-theme/images/loading-gif-animation.gif" alt="[loading...]" name="statusgif" width="24" height="20" id="statusgif">	
+			<img src="<%= request.getContextPath()%>/css/custom-theme/images/loading-gif-animation.gif" alt="[loading...]" name="statusgif" width="24" height="20" id="statusgif">	
 			<br /><br />
 			<div id="submodules">
 				<input type="radio" id="newOrder" name="radio1" checked="checked" /><label class="submods" for="newOrder">New Order</label>
@@ -45,7 +87,7 @@
 			<div id="sidecol">
 				<!--/*content is filled in by JS/couchDB*/-->
 			</div>
-			<div id="content">
+			<div id="inner-content">
 				<!--/*content is filled in by JS*/-->
 			</div>
 		</div>

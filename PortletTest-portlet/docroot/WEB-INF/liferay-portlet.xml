@@ -14,16 +14,17 @@
 		<icon>/icon.png</icon>
 		<use-default-template>false</use-default-template>
 		<instanceable>false</instanceable>
+		 
 		<header-portlet-css>/css/screen.css</header-portlet-css>
+		<header-portlet-css>/css/jquery-ui-1.8.16.custom.css</header-portlet-css>
 		<header-portlet-css>/css/main.css</header-portlet-css>
-		<header-portlet-css>/css/custom-theme/jquery-ui-1.8.16.custom.css</header-portlet-css>
-		<header-portlet-css>/css/custom-theme/images</header-portlet-css>
+		<header-portlet-css>/css/custom-theme/images/loading-gif-animation.gif</header-portlet-css>
 		
 		
-		<header-portlet-javascript>http://code.jquery.com/jquery-latest.js</header-portlet-javascript>
+		<header-portlet-javascript>/js/jquery-1.10.2.js</header-portlet-javascript>
 		<header-portlet-javascript>http://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.min.js</header-portlet-javascript>
 		<header-portlet-javascript>/js/jquery-ui-1.8.16.custom.min.js</header-portlet-javascript>
-		<header-portlet-javascript>/js/main.js</header-portlet-javascript>
+		<!--<header-portlet-javascript>/js/main.js</header-portlet-javascript>-->
 		<header-portlet-javascript>/js/index.js</header-portlet-javascript>
 		<css-class-wrapper>newportlet2-portlet</css-class-wrapper>
 	</portlet>

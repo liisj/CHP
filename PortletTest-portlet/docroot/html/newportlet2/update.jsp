@@ -15,7 +15,7 @@ ActionRequest.ACTION_NAME, "updateBook");
 </form> 
 -->
 
-<script>src="http://code.jquery.com/jquery-1.10.2.js"</script> 
+<script>src="http://code.jquery.com/jquery-1.10.2.js"</script>  
 
 <aui:form name="fm" method="POST" action="<%= updateBookURL.toString() %>">
 <aui:input name="bookTitle" label="Book Title"/>
