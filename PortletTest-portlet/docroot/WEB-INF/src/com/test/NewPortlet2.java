@@ -314,6 +314,25 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println("Created at: " + request.getParameter("created_at"));
 		
 	}
+	
+	@ProcessAction(name = "updateStock")
+	public void updateStock(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		String added = request.getParameter("added");
+		String reduced = request.getParameter("reduced");
+		
+		if (!(added.equals("NaN"))) {
+			System.out.println("Added: " + added);
+		}
+		
+		if (!(reduced.equals("NaN"))) {
+			System.out.println("Reduced: " + reduced);
+		}
+		
+	}
+	
+	
 	/*public void serveResource(ResourceRequest resourceRequest, ResourceResponse resourceResponse) {
 		
 		resourceResponse.setContentType("text/javascript");

@@ -127,7 +127,7 @@ p {padding: 5px 0;}
 .Drug_name {
 	font-size: 20px;
 }
-.AddReduce {
+.AddReduce,.UpdateStock {
 	height: 30px;
 	margin-top:12px;
 	margin-bottom:12px;
@@ -177,7 +177,7 @@ p {padding: 5px 0;}
 	border: thin solid #CCC;
 }
 
-.reqInput,.rcvInput{
+.reqInput,.rcvInput,.AddReduceInput{
 	width: 50px;
 }
 
@@ -193,12 +193,12 @@ p {padding: 5px 0;}
 	height: 100%;
 }
 
-.col1{
-	width: 50%;
+.col1,.col2{
+	width: 40%;
 }
 
-.col2,.col3{
-	width: 25%;
+.col3{
+	width: 20%;
 }
 
 .col2{
@@ -227,4 +227,8 @@ p {padding: 5px 0;}
 }
 #statusgif{
 	float: right;
+}
+.AddReduceTxt{
+	margin-left: 10px;
+	margin-right: 10px;
 }
