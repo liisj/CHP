@@ -23,6 +23,7 @@ public class DBTestGUI {
 	static JTextField medNameField;
 	static JTextField orderField2;
 	static JTextField unitDetailsField;
+	static JTextField drugCategoryField;
 	static JTable table;
 
 	static void createWindow() {
@@ -31,7 +32,7 @@ public class DBTestGUI {
 		JPanel editPanel = new JPanel();
 		BorderLayout borderL = new BorderLayout();
 		frame.setLayout(borderL);
-		editPanel.setLayout(new GridLayout(4,4));
+		editPanel.setLayout(new GridLayout(5,4));
 		
 		
 		
@@ -43,6 +44,7 @@ public class DBTestGUI {
 		JLabel msdCodeLabel = new JLabel("msdcode");
 		JLabel unitLabel = new JLabel("Unit");
 		JLabel unitDetailsLabel = new JLabel("Unit Details");
+		JLabel drugCategoryLabel = new JLabel("Drug Category");
 
 		facField = new JTextField("");
 		orderField1 = new JTextField("");
@@ -52,6 +54,7 @@ public class DBTestGUI {
 		msdCodeField = new JTextField("");
 		unitField = new JTextField("");
 		unitDetailsField = new JTextField("");
+		drugCategoryField = new JTextField("");
 		
 		table = new JTable();
 		table.setModel(new DefaultTableModel());
@@ -77,6 +80,8 @@ public class DBTestGUI {
 		editPanel.add(unitField);//12
 		editPanel.add(unitDetailsLabel);
 		editPanel.add(unitDetailsField);
+		editPanel.add(drugCategoryLabel);
+		editPanel.add(drugCategoryField);
 		
 		
 		JButton button = new JButton();
@@ -88,7 +93,7 @@ public class DBTestGUI {
 		frame.getContentPane().add(scrollPane,BorderLayout.CENTER);
 		frame.getContentPane().add(button,BorderLayout.SOUTH);
 		frame.pack();
-		frame.setSize(new Dimension(800, 500));
+		frame.setSize(new Dimension(1200, 500));
 		frame.setVisible(true);
 		
 		
