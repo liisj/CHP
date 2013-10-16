@@ -23,6 +23,7 @@ public class DataBaseFunctions {
 			+ "o.status AS Order_Status,"
 			+ "c.id AS Drug_Category_ID,"
 			+ "c.name AS Drug_Category_Name," + "d.id AS Drug_ID,"
+			+ "d.msdcode AS Drug_MSDCode,"
 			+ "d.med_name AS Drug_Medical_Name,"
 			+ "d.common_name AS Drug_Common_Name,"
 			+ "d.unit AS Drug_Ordering_Unit,"
