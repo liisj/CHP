@@ -83,7 +83,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 *            order_end (String/Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
 	 *            order_status (String, one of: 'initiated','sent','delivered','canceled'<br>
 	 *            facility_id (int),<br>
-	 *            facility_name (String)
+	 *            facility_name (String), <br>
+	 *            summarized (Boolean)
 	 * @param response
 	 * @throws PortletException
 	 * @throws IOException
@@ -166,7 +167,12 @@ public class NewPortlet2 extends MVCPortlet {
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
-	
+
+	/**
+	 * 
+	 * @deprecated Replaced by {@link #getOrderItems()}. Add "sent" as order_status to achieve same functionality.
+	 */
+	@Deprecated
 	@ProcessAction(name = "getSentOrderItems")
 	public void getSentOrderItems(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {

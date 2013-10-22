@@ -27,10 +27,9 @@ public class DataBaseFunctions {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static final String SELECT_Order = "SELECT " + "o.id AS Order_ID, "
+	static final String COLUMNS_Order = " " + "o.id AS Order_ID, "
 			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
-			+ "f.id AS facility_id, " + "f.name as facility_name, "
-			+ "(d.*,c.name,o.unit_number)::drug_ext AS drug ";
+			+ "f.id AS facility_id, " + "f.name as facility_name";
 
 	static final String FROM_Order = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
 			+ "JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
@@ -351,40 +350,54 @@ public class DataBaseFunctions {
 		String facility_name = (String) parameters.get("facility_name");
 
 		StringBuilder whereBuilder = new StringBuilder("");
-		whereBuilder.append(SELECT_Order);
+		
+		
+		
+		String summarizeS = (String) parameters.get("summarize");
+		boolean summarize = summarizeS==null?true:Boolean.valueOf(summarizeS);
+		
+		if (summarize)
+			whereBuilder.append("SELECT DISTINCT");
+		else
+			whereBuilder.append("SELECT");
+		
+		whereBuilder.append(COLUMNS_Order);
+		
+		if (summarize)
+			whereBuilder.append(", sum(d.unit_price*o.unit_number) as total_costs");
+		else
+			whereBuilder.append(", (d.*,c.name,o.unit_number)::drug_ext AS drug ");
+		
+		
+		
 		whereBuilder.append(FROM_Order);
 
 		int c = 0;
 
-		if (order_id != null) {
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
-			whereBuilder.append("o.id = ?");
-		}
+		if (order_id != null)
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.id = ?");
 
-		if (order_start != null) {
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
-			whereBuilder.append("o.timestamp >= ?");
-		}
+		if (order_start != null)
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.timestamp >= ?");
 
-		if (order_end != null) {
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
-			whereBuilder.append("o.timestamp <= ?");
-		}
+		if (order_end != null)
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.timestamp <= ?");
 
-		if (order_status != null) {
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
-			whereBuilder.append("o.status = ?::order_status");
-		}
+		if (order_status != null)
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.status = ?::order_status");
 
-		if (facility_id != null) {
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
-			whereBuilder.append("f.id = ?");
-		}
+		if (facility_id != null)
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("f.id = ?");
 
-		if (facility_name != null) {
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
-			whereBuilder.append("f.name LIKE ('%'||?||'%')");
-		}
+		if (facility_name != null)
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("f.name LIKE ('%'||?||'%')");
+		
+
+		if (summarize)
+			whereBuilder.append(" GROUP BY o.id, o.timestamp, o.status, f.id, f.name");
+		
+		
+		
 
 		PreparedStatement pstmt;
 		JSONArray resultArray = null;
@@ -414,6 +427,9 @@ public class DataBaseFunctions {
 			System.out.println(pstmt.toString());
 
 			ResultSet rs = pstmt.executeQuery();
+			
+			if (summarize)
+				return resultSetToJSONArray(rs);
 
 			resultArray = new JSONArray();
 
@@ -553,10 +569,23 @@ public class DataBaseFunctions {
 		System.out.println(result.toJSONString());
 	}
 	
+	private static void testGetOrderSummary(Connection con) {
+		JSONObject input = new JSONObject();
+		input.put("facility_id", "1");
+		input.put("order_start", "2013-09-21 00:00:00");
+		JSONArray result = getOrderSummary(con, input);
+		System.out.println(result.toJSONString());
+		input.put("summarize", "false");
+		result = getOrderSummary(con, input);
+		System.out.println(result.toJSONString());
+	}
+	
+	
 	
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
-		testGetDrugs(con);
+		testGetOrderSummary(con);
+//		testGetDrugs(con);
 //		input.put("facility_id", "1");
 //		input.put("order_start", "2013-09-21 00:00:00");
 		// input.put("drug_common_name", "Asp");
