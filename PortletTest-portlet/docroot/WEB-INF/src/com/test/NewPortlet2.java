@@ -91,18 +91,6 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getOrderSummary")
 	public void getOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-		
-/*
-		JSONArray list = new JSONArray();
-		for (int i=0; i<3; i++) {
-			JSONObject obj=new JSONObject();
-			obj.put("id", i*2);
-			obj.put("date","0"+(i+1)+"/05/2013");
-			obj.put("items",3);
-			obj.put("status", "ordered");
-			list.add(obj);
-		}
-*/
 
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
@@ -112,20 +100,20 @@ public class NewPortlet2 extends MVCPortlet {
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
-	
+
+	/**
+	 * 
+	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "sent" as order_status to achieve same functionality.
+	 */
+	@Deprecated
 	@ProcessAction(name = "getSentOrderSummary")
 	public void getSentOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+
+		JSONObject parameters = new JSONObject(request.getParameterMap());
+		parameters.put("order_status", "sent");
+		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
-		JSONArray list = new JSONArray();
-		for (int i=0; i<3; i++) {
-			JSONObject obj=new JSONObject();
-			obj.put("id", i*2+1);
-			obj.put("date","0"+(i+2)+"/05/2013");
-			obj.put("items","3");
-			obj.put("status", "arrived");
-			list.add(obj);
-		}
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
