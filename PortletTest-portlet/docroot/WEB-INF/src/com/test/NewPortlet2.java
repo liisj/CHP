@@ -32,6 +32,23 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getCategories")
 	public void getCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+
+				
+/*		System.out.println("Sending categories");
+		JSONArray list = new JSONArray();
+		JSONObject cat1 = new JSONObject();
+		JSONObject cat2 = new JSONObject();
+		JSONObject cat3 = new JSONObject();
+		cat1.put("id", 10);
+		cat1.put("name", "Antifungals");
+		cat2.put("id", 20);
+		cat2.put("name", "Probiotics");
+		cat3.put("id", 30);
+		cat3.put("name", "Viral vaccines");
+		list.add(cat1);
+		list.add(cat2);
+		list.add(cat3);
+*/
 		
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		JSONArray list = DataBaseFunctions.getCategories(DataBaseFunctions.getWebConnection());
@@ -75,10 +92,20 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
+/*
+		JSONArray list = new JSONArray();
+		for (int i=0; i<3; i++) {
+			JSONObject obj=new JSONObject();
+			obj.put("id", i*2);
+			obj.put("date","0"+(i+1)+"/05/2013");
+			obj.put("items",3);
+			obj.put("status", "ordered");
+			list.add(obj);
+		}
+*/
 
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
-		
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
@@ -93,6 +120,7 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONArray list = new JSONArray();
 		for (int i=0; i<3; i++) {
 			JSONObject obj=new JSONObject();
+			obj.put("id", i*2+1);
 			obj.put("date","0"+(i+2)+"/05/2013");
 			obj.put("items","3");
 			obj.put("status", "arrived");
@@ -109,7 +137,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getOrderItems(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
-		String idParameter = request.getParameter("id");
+		System.out.println("order id: " + request.getParameter("id"));
 		JSONArray list = new JSONArray();
 
 		JSONObject obj7=new JSONObject();
@@ -166,7 +194,8 @@ public class NewPortlet2 extends MVCPortlet {
 		obj7.put("price", 100);
 		obj7.put("suggested", 11);
 		obj7.put("amount", 200);
-		obj7.put("id", 4);
+		obj7.put("drugid", 4);
+		obj7.put("orderid", 40);
 		list.add(obj7);
 		
 		JSONObject obj8=new JSONObject();
@@ -177,7 +206,8 @@ public class NewPortlet2 extends MVCPortlet {
 		obj8.put("price", 200);
 		obj8.put("suggested", 1000);
 		obj8.put("amount", 200);
-		obj8.put("id", 5);
+		obj7.put("drugid", 5);
+		obj7.put("orderid", 50);
 		list.add(obj8);
 		
 		JSONObject obj9=new JSONObject();
@@ -188,7 +218,8 @@ public class NewPortlet2 extends MVCPortlet {
 		obj9.put("price", 200);
 		obj9.put("suggested", 1000);
 		obj9.put("amount", 200);
-		obj9.put("id", 6);
+		obj7.put("drugid", 6);
+		obj7.put("orderid", 60);
 		list.add(obj9);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
@@ -211,17 +242,42 @@ public class NewPortlet2 extends MVCPortlet {
 		
 		String added = request.getParameter("added");
 		String reduced = request.getParameter("reduced");
+		String drugid = request.getParameter("drugid");
 		
-		if (!(added.equals("NaN"))) {
+		System.out.println(drugid);
+		
+		if (added != null && !(added.equals("NaN"))) {
 			System.out.println("Added: " + added);
 		}
 		
-		if (!(reduced.equals("NaN"))) {
+		if (reduced != null && !(reduced.equals("NaN"))) {
 			System.out.println("Reduced: " + reduced);
 		}
 		
 	}
 	
+	@ProcessAction(name = "updateOrder")
+	public void updateOrder(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		String newStatus = request.getParameter("newStatus");
+	}
+	
+	@ProcessAction(name = "addNewDrug")
+	public void addNewDrug(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		String newName = request.getParameter("name");
+		System.out.println(newName);
+	}
+	
+	@ProcessAction(name = "updateDrug")
+	public void updateDrug(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		String id = request.getParameter("id");
+		System.out.println(id);
+	}
 	
 	/*public void serveResource(ResourceRequest resourceRequest, ResourceResponse resourceResponse) {
 		
