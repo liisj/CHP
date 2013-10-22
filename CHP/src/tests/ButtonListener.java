@@ -31,6 +31,7 @@ public class ButtonListener implements ActionListener {
 		String msdcode = ifEmptyNull(DBTestGUI.msdCodeField.getText());
 		String unit = ifEmptyNull(DBTestGUI.unitField.getText());
 		String unitDetails = ifEmptyNull(DBTestGUI.unitDetailsField.getText());
+		String categoryName = ifEmptyNull(DBTestGUI.drugCategoryField.getText());
 		
 		JSONObject input = new JSONObject();
 		input.put("facility_name", facText);
@@ -41,6 +42,7 @@ public class ButtonListener implements ActionListener {
 		input.put("drug_msdcode", msdcode);
 		input.put("drug_unit", unit);
 		input.put("drug_unit_details", unitDetails);
+		input.put("category_name", categoryName);
 		
 		
 		try {

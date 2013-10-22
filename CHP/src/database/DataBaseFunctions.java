@@ -17,28 +17,33 @@ public class DataBaseFunctions {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static final String selectOrder = "SELECT " + "o.id AS Order_ID,"
+	static final String SELECT_Order = "SELECT " + "o.id AS Order_ID,"
 			+ "o.timestamp AS Order_Timestamp,"
 			+ "o.unit_number AS Ordered_Unit_Number,"
-			+ "o.status AS Order_Status," + "d.id AS Drug_ID,"
-			+ "d.category AS Drug_Category,"
+			+ "o.status AS Order_Status,"
+			+ "c.id AS Drug_Category_ID,"
+			+ "c.name AS Drug_Category_Name," + "d.id AS Drug_ID,"
+			+ "d.msdcode AS Drug_MSDCode,"
 			+ "d.med_name AS Drug_Medical_Name,"
 			+ "d.common_name AS Drug_Common_Name,"
 			+ "d.unit AS Drug_Ordering_Unit,"
 			+ "d.unit_details AS Drug_Unit_Details,"
 			+ "d.unit_price as Drug_Price_per_Unit," + "f.id AS Facility_ID,"
 			+ "f.name AS Facility_Name";
-	static final String fromOrder = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
-			+ "JOIN drugs d ON o.drug_id = d.id ";
+	static final String FROM_Order = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
+			+ "JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
 
-	static final String getCategoryName = "SELECT c.id,c.name FROM categories c";
+	static final String GET_CATEGORY_NAME = "SELECT c.id AS Category_ID,c.name AS Category_Name FROM categories c";
 
-	static final String addOrder = "INSERT INTO "
+	static final String ADD_ORDEr = "INSERT INTO "
 			+ "orders (id,facility_id,drug_id,unit_number,timestamp,status) "
 			+ "VALUES (default,?,?,?,now(),?::order_status)";
 
-	static final String updateInventory = "UPDATE inventories SET unit_number = ? + unit_number"
+	static final String UPDATE_INVENTORY = "UPDATE inventories SET unit_number = ? + unit_number"
 			+ "WHERE facility_id = ? AND drug_id = ?";
+
+	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = (?)::order_status"
+			+ "WHERE id = ?";
 
 	private static BasicDataSource dataSourceWeb = null;
 
@@ -88,7 +93,7 @@ public class DataBaseFunctions {
 					jsonRow.put(columnName, resultSet.getDouble(columnIndex));
 					break;
 				default:
-					jsonRow.put(columnName, resultSet.getObject(columnIndex));
+					System.err.println("PSQL Type not mapped in transformation.");
 					break;
 				}
 			}
@@ -149,6 +154,9 @@ public class DataBaseFunctions {
 		Timestamp order_end = order_end_String == null ? null
 				: java.sql.Timestamp.valueOf(order_end_String);
 		String order_status = (String) parameters.get("order_status");
+		
+		Integer category_id = (Integer) parameters.get("category_id");
+		String category_name = (String) parameters.get("category_name");
 
 		Integer drug_id = (Integer) parameters.get("drug_id");
 		String drug_med_name = (String) parameters.get("drug_med_name");
@@ -161,8 +169,8 @@ public class DataBaseFunctions {
 		String facility_name = (String) parameters.get("facility_name");
 
 		StringBuilder whereBuilder = new StringBuilder("");
-		whereBuilder.append(selectOrder);
-		whereBuilder.append(fromOrder);
+		whereBuilder.append(SELECT_Order);
+		whereBuilder.append(FROM_Order);
 
 		int c = 0;
 
@@ -191,6 +199,16 @@ public class DataBaseFunctions {
 			whereBuilder.append("o.status = ?::order_status");
 		}
 
+		if (category_id != null) {
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
+			whereBuilder.append("c.id = ?");
+		}
+
+		if (category_name != null) {
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
+			whereBuilder
+					.append("c.name LIKE ('%'||?||'%')");
+		}
 		if (drug_id != null) {
 			whereBuilder.append((c++ > 0 ? " AND " : "WHERE "));
 			whereBuilder.append("d.id = ?");
@@ -251,6 +269,12 @@ public class DataBaseFunctions {
 
 		if (order_status != null)
 			pstmt.setString(p++, order_status);
+		
+		if (category_id != null)
+			pstmt.setInt(p++, category_id);
+		
+		if (category_name != null)
+			pstmt.setString(p++, category_name);
 
 		if (drug_id != null)
 			pstmt.setInt(p++, drug_id);
@@ -297,10 +321,10 @@ public class DataBaseFunctions {
 	 * @return JSONArray containing Categories, stored as JSONObjects
 	 * @throws SQLException
 	 */
-	public static JSONArray getCategoryNames(Connection con)
+	public static JSONArray getCategories(Connection con)
 			throws SQLException {
-		ResultSet rs = con.createStatement().executeQuery(getCategoryName);
-		return resultSetToJSONArray(rs);
+		ResultSet resultSet = con.createStatement().executeQuery(GET_CATEGORY_NAME);
+		return resultSetToJSONArray(resultSet);
 	}
 
 	/**
@@ -329,7 +353,7 @@ public class DataBaseFunctions {
 				|| status == null)
 			return false;
 
-		PreparedStatement pstmt = con.prepareStatement(addOrder);
+		PreparedStatement pstmt = con.prepareStatement(ADD_ORDEr);
 
 		pstmt.setInt(1, (Integer) parameters.get("facility_id"));
 		pstmt.setInt(2, (Integer) parameters.get("drug_id"));
@@ -341,6 +365,40 @@ public class DataBaseFunctions {
 		return true;
 	}
 
+	
+
+	/**
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 * @param parameters
+	 *            JSON Object with the following parameters:<br>
+	 *            order_id (int),<br>
+	 *            status (String),<br>
+	 * @return true if operation succeeded, false otherwise
+	 * @throws SQLException
+	 */
+	public static boolean updateOrderStatus(Connection con, JSONObject parameters) throws SQLException {
+		if (parameters == null)
+			return false;
+		Integer order_id = (Integer) parameters.get("order_id");
+		String status = (String) parameters.get("status");
+
+		if (order_id == null || status == null)
+			return false;
+
+		PreparedStatement pstmt = con.prepareStatement(UPDATE_ORDER_STATUS);
+		pstmt.setString(1, status);
+		pstmt.setInt(2, order_id);
+
+		pstmt.executeUpdate();
+		
+		return true;
+
+	}
+	
+	
+	
 	/**
 	 * 
 	 * @param con
@@ -359,7 +417,7 @@ public class DataBaseFunctions {
 		if (facility_id == null || drug_id == null || difference == null)
 			return false;
 
-		PreparedStatement pstmt = con.prepareStatement(updateInventory);
+		PreparedStatement pstmt = con.prepareStatement(UPDATE_INVENTORY);
 
 		pstmt.setInt(1, difference);
 		pstmt.setInt(2, facility_id);

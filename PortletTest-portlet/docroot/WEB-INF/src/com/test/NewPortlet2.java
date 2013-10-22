@@ -32,8 +32,9 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getCategories")
 	public void getCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+
 				
-		System.out.println("Sending categories");
+/*		System.out.println("Sending categories");
 		JSONArray list = new JSONArray();
 		JSONObject cat1 = new JSONObject();
 		JSONObject cat2 = new JSONObject();
@@ -47,6 +48,11 @@ public class NewPortlet2 extends MVCPortlet {
 		list.add(cat1);
 		list.add(cat2);
 		list.add(cat3);
+*/
+		
+		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONArray list = DataBaseFunctions.getCategories(DataBaseFunctions.getWebConnection());
+		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
@@ -187,11 +193,26 @@ public class NewPortlet2 extends MVCPortlet {
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
-	
+
+	/**
+	 * 
+	 * @param request
+	 *            Possible parameters:<br>
+	 *            order_id (int),<br>
+	 *            order_start (String/Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
+	 *            order_end (String/Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
+	 *            order_status (String, one of: 'initiated','sent','delivered','canceled'<br>
+	 *            facility_id (int),<br>
+	 *            facility_name (String)
+	 * @param response
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "getOrderSummary")
 	public void getOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
+/*
 		JSONArray list = new JSONArray();
 		for (int i=0; i<3; i++) {
 			JSONObject obj=new JSONObject();
@@ -201,6 +222,10 @@ public class NewPortlet2 extends MVCPortlet {
 			obj.put("status", "ordered");
 			list.add(obj);
 		}
+*/
+
+		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
