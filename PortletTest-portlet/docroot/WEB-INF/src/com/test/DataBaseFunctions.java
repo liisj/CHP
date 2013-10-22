@@ -47,6 +47,8 @@ public class DataBaseFunctions {
 
 	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = (?)::order_status"
 			+ " WHERE id = ?";
+	
+	static final String GET_DRUGS = "SELECT * FROM drugs d ";
 
 	private static PGConnectionPoolDataSource dataSourceWeb = null;
 
@@ -146,7 +148,7 @@ public class DataBaseFunctions {
 				dataSourceWeb.setPortNumber(5433);
 				dataSourceWeb.setDatabaseName("chpv1");
 			}
-			
+
 			Connection con = dataSourceWeb.getPooledConnection()
 					.getConnection();
 			PGConnection pgCon = (PGConnection) con;
@@ -160,9 +162,6 @@ public class DataBaseFunctions {
 		}
 		return null;
 	}
-
-	
-	
 
 	/**
 	 * 
@@ -263,6 +262,59 @@ public class DataBaseFunctions {
 		return false;
 	}
 
+	public static JSONArray getDrugs(Connection con, JSONObject parameters) {
+
+		String drug_idS = (String) parameters.get("drug_id");
+		String category_idS = (String) parameters.get("category_id");
+		
+		int p = 0;
+		String where = "";
+		if (drug_idS != null) {
+			if (p==0)
+				where += " WHERE ";
+			else
+				where += " AND ";
+			where += "drug_id = ?";
+			p++;
+		}
+
+		if (category_idS != null) {
+			if (p==0)
+				where += " WHERE ";
+			else
+				where += " AND ";
+			where += "category_id = ?";
+		}
+		
+		PreparedStatement pstmt;
+		try {
+			JSONArray result = new JSONArray();
+			pstmt = con.prepareStatement(GET_DRUGS + where);
+			
+
+
+			if (drug_idS != null) {
+				Integer drug_id = Integer.valueOf(drug_idS);
+				pstmt.setInt(1, drug_id);
+			}
+
+			if (category_idS != null) {
+				Integer category_id = Integer.valueOf(category_idS);
+				pstmt.setInt(1, category_id);
+			}
+			
+			ResultSet rs = pstmt.executeQuery();
+			
+			return resultSetToJSONArray(rs);
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return new JSONArray();
+
+	}
+
 	/**
 	 * 
 	 * @param con
@@ -272,7 +324,8 @@ public class DataBaseFunctions {
 	 *            order_id (int),<br>
 	 *            order_start (Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
 	 *            order_end (Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
-	 *            order_status (one of: 'initiated','sent','delivered','canceled'<br>
+	 *            order_status (one of:
+	 *            'initiated','sent','delivered','canceled'<br>
 	 *            facility_id (int),<br>
 	 *            facility_name (String)
 	 * @return
@@ -407,7 +460,6 @@ public class DataBaseFunctions {
 		return resultArray;
 	}
 
-	
 	/**
 	 * 
 	 * @param con
@@ -492,19 +544,29 @@ public class DataBaseFunctions {
 
 	}
 
+	
+	
+	private static void testGetDrugs(Connection con) {
+		JSONObject input = new JSONObject();
+		input.put("category_id", "2");
+		JSONArray result = getDrugs(con, input);
+		System.out.println(result.toJSONString());
+	}
+	
+	
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
-		JSONObject input = new JSONObject();
-		input.put("facility_id", "1");
-		input.put("order_start", "2013-09-21 00:00:00");
+		testGetDrugs(con);
+//		input.put("facility_id", "1");
+//		input.put("order_start", "2013-09-21 00:00:00");
 		// input.put("drug_common_name", "Asp");
-		JSONArray arr = getOrderSummary(con, input);
-		System.out.println("");
-		JSONObject one = (JSONObject) arr.get(0);
-		JSONArray drugs = (JSONArray) one.get("drugs");
-		JSONObject drug = (JSONObject) drugs.get(0);
-		System.out.println(drug);
-		System.out.println(arr);
+//		JSONArray arr = getOrderSummary(con, input);
+//		System.out.println("");
+//		JSONObject one = (JSONObject) arr.get(0);
+//		JSONArray drugs = (JSONArray) one.get("drugs");
+//		JSONObject drug = (JSONObject) drugs.get(0);
+//		System.out.println(drug);
+//		System.out.println(arr);
 		// arr = getCategoryNames(con);
 
 	}
