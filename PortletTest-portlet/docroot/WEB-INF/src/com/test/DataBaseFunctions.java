@@ -34,7 +34,7 @@ public class DataBaseFunctions {
 	static final String FROM_Order = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
 			+ "JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
 
-	static final String GET_CATEGORY_NAME = "SELECT c.id AS Category_ID,c.name AS Category_Name FROM categories c";
+	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
 	static final String ADD_ORDER_START = "WITH meta AS (SELECT ? as fac_id,now() as ts, (?)::order_status as stat) "
 			+ "INSERT INTO "
@@ -48,6 +48,10 @@ public class DataBaseFunctions {
 			+ " WHERE id = ?";
 	
 	static final String GET_DRUGS = "SELECT * FROM drugs d ";
+	
+	static final String ADD_DRUG = "INSERT INTO drugs(id, msdcode, "
+			+ "category_id, med_name, common_name, unit, unit_details, unit_price) "
+			+ "VALUES (default, ?, ?, ?, ?, ?, ?, ?)";
 
 	private static PGConnectionPoolDataSource dataSourceWeb = null;
 
@@ -136,8 +140,11 @@ public class DataBaseFunctions {
 		return jsonRow;
 	}
 
+	/**
+	 * 
+	 * @return A connection to the database, currently having all rights.
+	 */
 	public static Connection getWebConnection() {
-		// TODO
 		try {
 			if (dataSourceWeb == null) {
 				dataSourceWeb = new PGConnectionPoolDataSource();
@@ -145,7 +152,7 @@ public class DataBaseFunctions {
 				dataSourceWeb.setPassword(PASSWORD);
 				dataSourceWeb.setServerName(URL);
 				dataSourceWeb.setPortNumber(5433);
-				dataSourceWeb.setDatabaseName("chpv1");
+				dataSourceWeb.setDatabaseName("chpv1_small");
 			}
 
 			Connection con = dataSourceWeb.getPooledConnection()
@@ -156,7 +163,6 @@ public class DataBaseFunctions {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -176,7 +182,6 @@ public class DataBaseFunctions {
 			resultSet = con.createStatement().executeQuery(GET_CATEGORY_NAME);
 			result = resultSetToJSONArray(resultSet);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
@@ -261,6 +266,16 @@ public class DataBaseFunctions {
 		return false;
 	}
 
+	/**
+	 * 
+	 * @param con
+	 * @param parameters
+	 *            JSONObject with the following OPTIONAL parameters:<br>
+	 *            drug_id : (int),<br>
+	 *            category_id : (int)
+	 * @return JSONArray containing Drugs, stored as JSONObjects
+	 * 
+	 */
 	public static JSONArray getDrugs(Connection con, JSONObject parameters) {
 
 		String drug_idS = (String) parameters.get("drug_id");
@@ -269,19 +284,13 @@ public class DataBaseFunctions {
 		int p = 0;
 		String where = "";
 		if (drug_idS != null) {
-			if (p==0)
-				where += " WHERE ";
-			else
-				where += " AND ";
+			where += p==0?" WHERE ":" AND ";
 			where += "drug_id = ?";
 			p++;
 		}
 
 		if (category_idS != null) {
-			if (p==0)
-				where += " WHERE ";
-			else
-				where += " AND ";
+			where += p==0?" WHERE ":" AND ";
 			where += "category_id = ?";
 		}
 		
@@ -561,7 +570,21 @@ public class DataBaseFunctions {
 	}
 
 	
+	public static boolean addDrug(Connection con, JSONObject parameters) {
+		//TODO
+		return false;
+	}
+
+	public static boolean updateDrug(Connection con, JSONObject parameters) {
+		//TODO
+		return false;
+	}
 	
+	
+	/**
+	 * This function will print an exemplary Result of the getDrugs Function.
+	 * @param con Connection to be used
+	 */
 	private static void testGetDrugs(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("category_id", "2");
@@ -569,16 +592,22 @@ public class DataBaseFunctions {
 		System.out.println(result.toJSONString());
 	}
 	
+	/**
+	 * This function will print an exemplary Result of the getOrderSummary Function.
+	 * @param con Connection to be used
+	 */
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
-		input.put("order_start", "2013-09-21 00:00:00");
+//		input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
 		System.out.println(result.toJSONString());
 		input.put("summarize", "false");
 		result = getOrderSummary(con, input);
 		System.out.println(result.toJSONString());
 	}
+	
+	
 	
 	
 	

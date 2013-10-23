@@ -1,6 +1,7 @@
 package com.test;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -29,7 +30,16 @@ public class NewPortlet2 extends MVCPortlet {
 			System.out.println("Your inputs ==> " + bookTitle + ", " + author);
 			}
 	
-	//TODO
+
+	/**
+	 * 
+	 * @param request Ignored
+	 * @param response Will contain a JSONArray, containing JSONObjects like:<br>
+	 * category_id (int)<br>
+	 * category_name (String)
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "getCategories")
 	public void getCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
@@ -43,15 +53,22 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
-	//TODO
+	/**
+	 * 
+	 * @param request
+	 * 				Possible parameters:<br>
+	 * 				drug_id (int),<br>
+	 * 				category_id (int)
+	 * @param response
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "getDrugs")
 	public void getDrugs(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		JSONArray list = DataBaseFunctions.getDrugs(DataBaseFunctions.getWebConnection(),parameters);
-		
-		
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
@@ -146,30 +163,46 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
-	//TODO
+	
+	/**
+	 * 
+	 * @param request
+	 *            Parameters:<br>
+	 *            facility_id : (int),<br>
+	 * <br>
+	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
+	 *            difference (int)) will have to be added
+	 * @param response
+	 *            1 if query successful, 0 otherwise
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "updateStock")
 	public void updateStock(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+
+		JSONObject parameters = new JSONObject(request.getParameterMap());
+		boolean result = DataBaseFunctions.updateInventory(DataBaseFunctions.getWebConnection(),parameters);
 		
-		String added = request.getParameter("added");
-		String reduced = request.getParameter("reduced");
-		String drugid = request.getParameter("drugid");
+
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
-		
-		//TODO
-		System.out.println(drugid);
-		
-		if (added != null && !(added.equals("NaN"))) {
-			System.out.println("Added: " + added);
-		}
-		
-		if (reduced != null && !(reduced.equals("NaN"))) {
-			System.out.println("Reduced: " + reduced);
-		}
 		
 	}
 	
-	//TODO
+	/**
+	 * 
+	 * @param request
+	 *            Parameters:<br>
+	 *            order_id (int),<br>
+	 *            status (String),<br>
+	 * @param response
+	 *            1 if query successful, 0 otherwise
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "updateOrder")
 	public void updateOrder(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
@@ -189,33 +222,29 @@ public class NewPortlet2 extends MVCPortlet {
 	public void addNewDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		//TODO
-		String newName = request.getParameter("name");
-		System.out.println(newName);
+
+		JSONObject parameters = new JSONObject(request.getParameterMap());
+		boolean result = DataBaseFunctions.addDrug(DataBaseFunctions.getWebConnection(),parameters);
+		
+
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, result?"1":"0");
+		
 	}
 	
 	@ProcessAction(name = "updateDrug")
 	public void updateDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		//TODO
-		String id = request.getParameter("id");
-		System.out.println(id);
+
+		JSONObject parameters = new JSONObject(request.getParameterMap());
+		boolean result = DataBaseFunctions.updateDrug(DataBaseFunctions.getWebConnection(),parameters);
+		
+
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, result?"1":"0");
 	}
 	
-	/*public void serveResource(ResourceRequest resourceRequest, ResourceResponse resourceResponse) {
-		
-		resourceResponse.setContentType("text/javascript");
-		
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-		jsonObject.put("retVal1", "Returing First value from server");
-		
-		try {
-			PrintWriter writer;
-			writer = resourceResponse.getWriter();
-			writer.write(jsonObject.toString());
-			System.out.println(jsonObject.toString());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
 }
