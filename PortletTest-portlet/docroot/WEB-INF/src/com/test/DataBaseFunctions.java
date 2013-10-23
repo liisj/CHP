@@ -122,8 +122,8 @@ public class DataBaseFunctions {
 					.getColumnType(columnIndex);
 
 		}
-		for (String name : columnNames)
-			System.out.println(name);
+//		for (String name : columnNames)
+//			System.out.println(name);
 
 		JSONObject jsonRow = new JSONObject();
 		for (int columnIndex = 1; columnIndex <= columnNumber; columnIndex++) {
