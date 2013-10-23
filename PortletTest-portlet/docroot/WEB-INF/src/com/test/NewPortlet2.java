@@ -218,10 +218,26 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
+	/**
+	 * 
+	 * @param request
+	 *            Parameters:<br>
+	 *            Mandatory:<br>
+	 *            msdcode (int),<br>
+	 *            category_id (int),<br>
+	 *            med_name (String),<br>
+	 *            unit_price (Double)<br>
+	 *            Optional:<br>
+	 *            common_name (String),<br>
+	 *            unit (String),<br>
+	 *            unit_details (String)
+	 * @param response
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "addNewDrug")
 	public void addNewDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-		//TODO
 
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		boolean result = DataBaseFunctions.addDrug(DataBaseFunctions.getWebConnection(),parameters);
@@ -233,10 +249,27 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
+	/**
+	 * 
+	 * @param request
+	 *            Parameters:<br>
+	 *            Mandatory:<br>
+	 *            id (int)<br>
+	 *            Optional:<br>
+	 *            msdcode (int),<br>
+	 *            category_id (int),<br>
+	 *            med_name (String),<br>
+	 *            common_name (String),<br>
+	 *            unit (String),<br>
+	 *            unit_details (String),<br>
+	 *            unit_price (Double)<br>
+	 * @param response
+	 * @throws PortletException
+	 * @throws IOException
+	 */
 	@ProcessAction(name = "updateDrug")
 	public void updateDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-		//TODO
 
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		boolean result = DataBaseFunctions.updateDrug(DataBaseFunctions.getWebConnection(),parameters);
