@@ -59,6 +59,7 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 				Possible parameters:<br>
 	 * 				drug_id (int),<br>
 	 * 				category_id (int)
+	 * 				index (int)
 	 * @param response
 	 * @throws PortletException
 	 * @throws IOException
@@ -69,6 +70,15 @@ public class NewPortlet2 extends MVCPortlet {
 
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		JSONArray list = DataBaseFunctions.getDrugs(DataBaseFunctions.getWebConnection(),parameters);
+		
+		if (parameters.get("index") != null) {
+			
+			for (int i = 0; i < list.size(); i++) {
+				((JSONObject) (list.get(i))).put("index", parameters.get("index").toString());
+			}
+		}
+		
+		System.out.println(parameters.get("category_id"));
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");

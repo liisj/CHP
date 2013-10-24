@@ -1,9 +1,6 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
+<%@ include file="/html/newportlet2/loadDrugCategories.jsp" %>
 
-<portlet:actionURL name="getCategories" var="getCategories"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
-	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
 <portlet:actionURL name="getDrugs" var="getDrugs"
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
@@ -45,6 +42,14 @@
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
 
+<!--  code from DMA, index.html -->
+<!DOCTYPE HTML>
+<html>
+<head>
+        <meta charset="utf-8">
+    <link rel="shortcut icon" href="./favicon.ico"/>    
+        <title>DMA App</title>
+        
 <script type="text/javascript">
 //DMA code, from script.js
 
@@ -197,18 +202,23 @@ $(document).on("click",".AddReduce", function(){							//Called when either the 
 });
 
 $(document).on("click",".sideBtn",function(){								//Called when any of the side bar elements is pressed
-	sideEl = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1)) + 1;
+	sideEl = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
+	console.log("sideEl: " + sideEl);
 	switch(mod){
 	case 0:
-		showDrugs(sideEl);
+		var cat_id = $("#side_"+ sideEl).attr("cat_id");
+		showDrugs(cat_id);
 		break;
 	case 1:
-		showDrugs(sideEl);
+		var cat_id = $("#side_"+ sideEl).attr("cat_id");
+		showDrugs(cat_id);
 		break;
 	case 2:
+		sideEl += 1;
 		showOrderItems('<%=getOrderItems%>', sideEl);
 		break;
 	case 3:
+		sideEl += 1;
 		rcvOrder = new orderObj();
 		showOrderItems('<%=getSentOrderItems%>', sideEl);
 		break;
@@ -469,7 +479,7 @@ $(document).on("click",".UpdateStock", function() {
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
 		request.done(function(data) {
 			
-			$("#drugNameIn").val(data[0].drugname);
+			$("#drugNameIn").val(data[0].med_name);
 			
 			var catMenu = document.getElementById("catIn");
 			var catIDs = catMenu.getAttribute("catIDs").split(",");
@@ -479,9 +489,9 @@ $(document).on("click",".UpdateStock", function() {
 				}
 			}
 			
-			$("#unIssueIn").val(data[0].unitofissue);
-			$("#drugFormIn").val(data[0].drugform);
-			$("#priceIn").val(data[0].price);
+			$("#unIssueIn").val(data[0].unit_details);
+			$("#drugFormIn").val(data[0].unit);
+			$("#priceIn").val(data[0].unit_price);
 		});
 	}
 };
@@ -503,9 +513,9 @@ $(document).on("click",".UpdateStock", function() {
 			for (var i in data) {
 				var categoryOpt = $("<option>");
 				categoryOpt
-					.text(data[i].name)
+					.text(data[i].category_name)
 					.appendTo(dropdown);
-				catIDs += data[i].id + ",";
+				catIDs += data[i].category_id + ",";
 			}
 			dropdown.attr("catIDs", catIDs);
 		});
@@ -515,22 +525,7 @@ $(document).on("click",".UpdateStock", function() {
 		});	
 }
  
- function loadDrugCategories () {											//Retrieves from DMA server the category names and displays them in side bar
-	
-	var url = '<%=getCategories%>';
-	$("#statusgif").show();
-	
-	var request = jQuery.getJSON(url);
-	request.done(function(data){
-		$("#statusgif").hide();
-		drawSideCol("#sidecol",data,"drugCategories");
-		$("#side_0").click();
-	});
-	request.fail(function(jqXHR, textStatus) {
- 		//createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
-		$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
-	});
-}
+
 
 function showDrugs(category){ 														//Retrieves drug information from DB and displays it to the user
 	
@@ -539,22 +534,24 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 	
 	var catJSON;
 	
+	console.log("category: " + category);
 	if (category != null) {
-		catJSON = {"category": category};
+		catJSON = {"category_id": category};
 	}
 	var request = $.getJSON(url, catJSON);	
 	request.done(function(data){
+		console.log(data);
 		$("#statusgif").hide();
 		putTable("drugs_table",data.length,3);
 		for (var i in data){
-			$("#drugName_" + i).text(data[i].drugname);
+			$("#drugName_" + i).text(data[i].med_name);
 			$("#update_" + i).attr("drugid",data[i].id);
 			$("#edit_" + i).attr("drugid",data[i].id);
 			$("#check_" + i + i).attr("drugid",data[i].id);
-			putDrVal("#unIssue",i,data[i].unitofissue);
-			putDrVal("#drugForm",i,data[i].drugform);
+			putDrVal("#unIssue",i,data[i].unit_details);
+			putDrVal("#drugForm",i,data[i].unit);
 			putDrVal("#stock",i,data[i].current);
-			putDrVal("#price",i,data[i].price);
+			putDrVal("#price",i,data[i].unit_price);
 						
 			var drugIndex = getDrugIndex(data[i].id,newOrder);
 			if (drugIndex >= 0){
@@ -590,7 +587,7 @@ function loadOrders(url){												//Retrieves from DMA server the orders and 
 function showOrderItems(url, sideEl){											//Displays all of the items contained in the selected order
 	$("#statusgif").show();	
 	console.log($("#side_" + parseInt(sideEl-1)).attr("orderid"));
-	var JSONobj = {}
+	var JSONobj = {};
 	JSONobj["id"] = $("#side_" + parseInt(sideEl-1)).attr("orderid");
 	var request = $.getJSON(url, JSONobj);
 	request.done(function(data){
@@ -622,10 +619,10 @@ function showOrderSummary() {												//Displays the user with the order summ
 		var request = $.getJSON(url, JSONobj);
 		request.done(function(data){
 			for (var j in data) {
-				$("#drugName_" + data[j].index).text(data[j].drugname);
-				putDrVal("#unIssue",data[j].index,data[j].unitofissue);
-				putDrVal("#drugForm",data[j].index,data[j].drugform);
-				putDrVal("#price",data[j].index,data[j].price);
+				$("#drugName_" + data[j].index).text(data[j].med_name);
+				putDrVal("#unIssue",data[j].index,data[j].unit_deatils);
+				putDrVal("#drugForm",data[j].index,data[j].unit);
+				putDrVal("#price",data[j].index,data[j].unit_price);
 				putDrVal("#reqLbl",data[j].index,newOrder[data[j].index].amount);
 				break;
 				$("#statusgif").hide();
@@ -848,7 +845,7 @@ function drawTextTable(tbody){
 					icons: {
 						primary: "ui-icon-check"
 					}
-				})
+				});
 			break;
 		case 2:
 			$("<p>").text("Requested Qty: []")
@@ -893,7 +890,7 @@ function drawTextTable(tbody){
 						primary: "ui-icon-check"
 					},
 					text: false
-				})
+				});
 			break;
 		case 4:			
 			$("<p>").text("Received Qty: []")
@@ -923,10 +920,10 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 		request.done(function(data){
 			for (var j in data){
 				
-				$("#drugName_" + data[j].index).text(data[j].drugname);
-				putDrVal("#unIssue",data[j].index,data[j].unitofissue);
-				putDrVal("#drugForm",data[j].index,data[j].drugform);
-				putDrVal("#price",data[j].index,data[j].price);
+				$("#drugName_" + data[j].index).text(data[j].med_name);
+				putDrVal("#unIssue",data[j].index,data[j].unit_details);
+				putDrVal("#drugForm",data[j].index,data[j].unit);
+				putDrVal("#price",data[j].index,data[j].unit_price);
 				putDrVal("#rcvQty",data[j].index,rcvOrder.drugsInfo[data[j].index].amount);
 				putDrVal("#newStock",data[j].index,parseInt(getDrVal("#rcvQty",data[j].index))+parseInt(data[j].current));
 				break;
@@ -941,6 +938,7 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 function sendOrder(){														//Sends order information to the DMA server
 	$("#statusgif").show();
 			
+		// TODO: is this query even necessary?	
 		var getDrugs = $.getJSON('<%=getDrugs%>');
 		getDrugs.done(function(data){
 			var orderToSend = {};
@@ -1251,9 +1249,9 @@ function drawSideCol (tbody,info,type){
 		.attr("for","sideAddBtn")
 		.attr("id","sideAddLbl")
 		.text("ADD NEW DRUG");
+		button.appendTo(tbody);
+		label.appendTo(tbody);
 	}
-	button.appendTo(tbody);
-	label.appendTo(tbody);
 	$('#sidecol').buttonset();
 	
 	for (var r = 0; r < info.length; r++){		
@@ -1268,9 +1266,9 @@ function drawSideCol (tbody,info,type){
 			label
 				.attr("for","sideBtn_" + r)
 				.attr("id","side_" + r)
-				.attr("cat_id",info[r].id)
+				.attr("cat_id",info[r].category_id)
 				.addClass("sideBtn")
-				.text(info[r].name);
+				.text(info[r].category_name);
 			break;
 		case "Orders":
 			var label = $("<label>");
@@ -1288,15 +1286,7 @@ function drawSideCol (tbody,info,type){
 	}
 }
 </script>
-
-<!--  code from DMA, index.html -->
-<!DOCTYPE HTML>
-<html>
-<head>
-        <meta charset="utf-8">
-    <link rel="shortcut icon" href="./favicon.ico"/>    
-        <title>DMA App</title>
-        
+     
         <script>        // DMA code from index.html
 
         $(function() {

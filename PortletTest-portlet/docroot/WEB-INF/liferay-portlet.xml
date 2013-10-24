@@ -11,7 +11,7 @@
 	</portlet>
 	<portlet>
 		<portlet-name>newportlet2</portlet-name>
-		<icon>/icon.png</icon>
+		<icon>icon.png</icon>
 		<use-default-template>false</use-default-template>
 		<instanceable>false</instanceable>
 		 
@@ -25,7 +25,6 @@
 		<header-portlet-javascript>http://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.min.js</header-portlet-javascript>
 		<header-portlet-javascript>/js/jquery-ui-1.8.16.custom.min.js</header-portlet-javascript>
 		<!--<header-portlet-javascript>/js/main.js</header-portlet-javascript>-->
-		<header-portlet-javascript>/js/index.js</header-portlet-javascript>
 		<css-class-wrapper>newportlet2-portlet</css-class-wrapper>
 	</portlet>
 	<role-mapper>
