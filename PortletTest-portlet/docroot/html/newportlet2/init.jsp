@@ -39,7 +39,7 @@
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
 <portlet:actionURL name="updateOrder" var="updateOrder"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">c
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
 <portlet:actionURL name="addNewDrug" var="addNewDrug"
