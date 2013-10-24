@@ -232,3 +232,15 @@ p {padding: 5px 0;}
 	margin-left: 10px;
 	margin-right: 10px;
 }
+
+.buttonLink {
+	font-size: 20px;
+	background-color: #FFF;
+	border: 1px solid #DEDEDE;
+	border-color: #C0C2C5;
+	width: 300px;
+	border-radius: 5px;
+	box-shadow: 5px 5px #DEDEDE;
+	line-height: 30px;
+  	vertical-align: middle;
+}
