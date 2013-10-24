@@ -34,7 +34,7 @@ public class DataBaseFunctions {
 	static final String FROM_Order = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
 			+ "JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
 
-	static final String GET_CATEGORY_NAME = "SELECT c.id AS Category_ID,c.name AS Category_Name FROM categories c";
+	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
 	static final String ADD_ORDER_START = "WITH meta AS (SELECT ? as fac_id,now() as ts, (?)::order_status as stat) "
 			+ "INSERT INTO "
@@ -46,8 +46,15 @@ public class DataBaseFunctions {
 
 	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = (?)::order_status"
 			+ " WHERE id = ?";
-	
+
 	static final String GET_DRUGS = "SELECT * FROM drugs d ";
+
+	static final String ADD_DRUG = "INSERT INTO drugs(id, msdcode, "
+			+ "category_id, med_name, common_name, unit, unit_details, unit_price) "
+			+ "VALUES (default, ?, ?, ?, ?, ?, ?, ?)";
+
+	static final String UPDATE_DRUG_START = "UPDATE drugs ";
+	static final String UPDATE_DRUG_END = " WHERE id = ?";
 
 	private static PGConnectionPoolDataSource dataSourceWeb = null;
 
@@ -122,8 +129,8 @@ public class DataBaseFunctions {
 					.getColumnType(columnIndex);
 
 		}
-//		for (String name : columnNames)
-//			System.out.println(name);
+		// for (String name : columnNames)
+		// System.out.println(name);
 
 		JSONObject jsonRow = new JSONObject();
 		for (int columnIndex = 1; columnIndex <= columnNumber; columnIndex++) {
@@ -136,8 +143,11 @@ public class DataBaseFunctions {
 		return jsonRow;
 	}
 
+	/**
+	 * 
+	 * @return A connection to the database, currently having all rights.
+	 */
 	public static Connection getWebConnection() {
-		// TODO
 		try {
 			if (dataSourceWeb == null) {
 				dataSourceWeb = new PGConnectionPoolDataSource();
@@ -145,7 +155,7 @@ public class DataBaseFunctions {
 				dataSourceWeb.setPassword(PASSWORD);
 				dataSourceWeb.setServerName(URL);
 				dataSourceWeb.setPortNumber(5433);
-				dataSourceWeb.setDatabaseName("chpv1");
+				dataSourceWeb.setDatabaseName("chpv1_small");
 			}
 
 			Connection con = dataSourceWeb.getPooledConnection()
@@ -156,7 +166,6 @@ public class DataBaseFunctions {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -176,7 +185,6 @@ public class DataBaseFunctions {
 			resultSet = con.createStatement().executeQuery(GET_CATEGORY_NAME);
 			result = resultSetToJSONArray(resultSet);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
@@ -261,36 +269,39 @@ public class DataBaseFunctions {
 		return false;
 	}
 
+	/**
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 * @param parameters
+	 *            JSONObject with the following OPTIONAL parameters:<br>
+	 *            drug_id : (int),<br>
+	 *            category_id : (int)
+	 * @return JSONArray containing Drugs, stored as JSONObjects
+	 * 
+	 */
 	public static JSONArray getDrugs(Connection con, JSONObject parameters) {
 
 		String drug_idS = (String) parameters.get("drug_id");
 		String category_idS = (String) parameters.get("category_id");
-		
+
 		int p = 0;
 		String where = "";
 		if (drug_idS != null) {
-			if (p==0)
-				where += " WHERE ";
-			else
-				where += " AND ";
+			where += p == 0 ? " WHERE " : " AND ";
 			where += "drug_id = ?";
 			p++;
 		}
 
 		if (category_idS != null) {
-			if (p==0)
-				where += " WHERE ";
-			else
-				where += " AND ";
+			where += p == 0 ? " WHERE " : " AND ";
 			where += "category_id = ?";
 		}
-		
+
 		PreparedStatement pstmt;
 		try {
 			JSONArray result = new JSONArray();
 			pstmt = con.prepareStatement(GET_DRUGS + where);
-			
-
 
 			if (drug_idS != null) {
 				Integer drug_id = Integer.valueOf(drug_idS);
@@ -301,15 +312,15 @@ public class DataBaseFunctions {
 				Integer category_id = Integer.valueOf(category_idS);
 				pstmt.setInt(1, category_id);
 			}
-			
+
 			ResultSet rs = pstmt.executeQuery();
-			
+
 			return resultSetToJSONArray(rs);
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return new JSONArray();
 
 	}
@@ -350,54 +361,56 @@ public class DataBaseFunctions {
 		String facility_name = (String) parameters.get("facility_name");
 
 		StringBuilder whereBuilder = new StringBuilder("");
-		
-		
-		
+
 		String summarizeS = (String) parameters.get("summarize");
-		boolean summarize = summarizeS==null?true:Boolean.valueOf(summarizeS);
-		
+		boolean summarize = summarizeS == null ? true : Boolean
+				.valueOf(summarizeS);
+
 		if (summarize)
 			whereBuilder.append("SELECT DISTINCT");
 		else
 			whereBuilder.append("SELECT");
-		
+
 		whereBuilder.append(COLUMNS_Order);
-		
+
 		if (summarize)
-			whereBuilder.append(", sum(d.unit_price*o.unit_number) as total_costs");
+			whereBuilder
+					.append(", sum(d.unit_price*o.unit_number) as total_costs");
 		else
-			whereBuilder.append(", (d.*,c.name,o.unit_number)::drug_ext AS drug ");
-		
-		
-		
+			whereBuilder
+					.append(", (d.*,c.name,o.unit_number)::drug_ext AS drug ");
+
 		whereBuilder.append(FROM_Order);
 
 		int c = 0;
 
 		if (order_id != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.id = ?");
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
+					"o.id = ?");
 
 		if (order_start != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.timestamp >= ?");
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
+					"o.timestamp >= ?");
 
 		if (order_end != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.timestamp <= ?");
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
+					"o.timestamp <= ?");
 
 		if (order_status != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("o.status = ?::order_status");
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
+					"o.status = ?::order_status");
 
 		if (facility_id != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("f.id = ?");
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
+					"f.id = ?");
 
 		if (facility_name != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append("f.name LIKE ('%'||?||'%')");
-		
+			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
+					"f.name LIKE ('%'||?||'%')");
 
 		if (summarize)
-			whereBuilder.append(" GROUP BY o.id, o.timestamp, o.status, f.id, f.name");
-		
-		
-		
+			whereBuilder
+					.append(" GROUP BY o.id, o.timestamp, o.status, f.id, f.name");
 
 		PreparedStatement pstmt;
 		JSONArray resultArray = null;
@@ -427,7 +440,7 @@ public class DataBaseFunctions {
 			System.out.println(pstmt.toString());
 
 			ResultSet rs = pstmt.executeQuery();
-			
+
 			if (summarize)
 				return resultSetToJSONArray(rs);
 
@@ -560,42 +573,246 @@ public class DataBaseFunctions {
 
 	}
 
-	
-	
+	/**
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 * @param parameters
+	 *            JSON Object with the following parameters:<br>
+	 *            Mandatory:<br>
+	 *            msdcode (int),<br>
+	 *            category_id (int),<br>
+	 *            med_name (String),<br>
+	 *            unit_price (Double)<br>
+	 *            Optional:<br>
+	 *            common_name (String),<br>
+	 *            unit (String),<br>
+	 *            unit_details (String)
+	 * @return true if operation succeeded, false otherwise
+	 * @throws SQLException
+	 */
+	public static boolean addDrug(Connection con, JSONObject parameters) {
+		String msdcodeS = (String) parameters.get("msdcode");
+		String category_idS = (String) parameters.get("category_id");
+		String med_name = (String) parameters.get("med_name");
+		String common_name = (String) parameters.get("common_name");
+		String unit = (String) parameters.get("unit");
+		String unit_details = (String) parameters.get("unit_details");
+		String unit_priceS = (String) parameters.get("unit_price");
+
+		if (msdcodeS == null || category_idS == null || med_name == null
+				|| unit_priceS == null)
+			return false;
+
+		Double unit_price = Double.valueOf(unit_priceS);
+
+		PreparedStatement pstmt;
+		try {
+			pstmt = con.prepareStatement(ADD_DRUG);
+			int p = 1;
+
+			pstmt.setInt(p++, Integer.valueOf(msdcodeS));
+
+			pstmt.setInt(p++, Integer.valueOf(category_idS));
+
+			pstmt.setString(p++, med_name);
+
+			if (common_name == null)
+				pstmt.setNull(p++, java.sql.Types.VARCHAR);
+			else
+				pstmt.setString(p++, common_name);
+
+			if (unit == null)
+				pstmt.setNull(p++, java.sql.Types.VARCHAR);
+			else
+				pstmt.setString(p++, unit);
+
+			if (unit_details == null)
+				pstmt.setNull(p++, java.sql.Types.VARCHAR);
+			else
+				pstmt.setString(p++, unit_details);
+
+			pstmt.setDouble(p++, unit_price);
+			System.out.println(pstmt.toString());
+			int result = pstmt.executeUpdate();
+
+			return result > 0;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	/**
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 * @param parameters
+	 *            JSON Object with the following parameters:<br>
+	 *            Mandatory:<br>
+	 *            id (int)<br>
+	 *            Optional:<br>
+	 *            msdcode (int),<br>
+	 *            category_id (int),<br>
+	 *            med_name (String),<br>
+	 *            common_name (String),<br>
+	 *            unit (String),<br>
+	 *            unit_details (String),<br>
+	 *            unit_price (Double)<br>
+	 * @return true if operation succeeded, false otherwise
+	 * @throws SQLException
+	 */
+	public static boolean updateDrug(Connection con, JSONObject parameters) {
+
+		String idS = (String) parameters.get("id");
+
+		if (idS == null)
+			return false;
+
+		int id = Integer.valueOf(idS);
+
+		String msdcodeS = (String) parameters.get("msdcode");
+		String category_idS = (String) parameters.get("category_id");
+		String med_name = (String) parameters.get("med_name");
+		String common_name = (String) parameters.get("common_name");
+		String unit = (String) parameters.get("unit");
+		String unit_details = (String) parameters.get("unit_details");
+		String unit_priceS = (String) parameters.get("unit_price");
+
+		String middle = "SET ";
+		int c = 0;
+
+		if (msdcodeS != null)
+			middle += c++ > 0 ? ", " : " " + "msdcode = ?";
+			
+		if (category_idS != null)
+			middle += c++ > 0 ? ", " : " " + "category_id = ?";
+			
+		if (med_name != null)
+			middle += c++ > 0 ? ", " : " " + "med_name = ?";
+
+		if (common_name != null)
+			middle += c++ > 0 ? ", " : " " + "common_name = ?";
+
+		if (unit != null)
+			middle += c++ > 0 ? ", " : " " + "unit = ?";
+
+		if (unit_details != null)
+			middle += c++ > 0 ? ", " : " " + "unit_details = ?";
+
+		if (unit_priceS != null)
+			middle += c++ > 0 ? ", " : " " + "unit_price = ?";
+
+		try {
+			PreparedStatement pstmt = con.prepareStatement(UPDATE_DRUG_START
+					+ middle + UPDATE_DRUG_END);
+			int p = 1;
+			if (msdcodeS != null)
+				pstmt.setInt(p++, Integer.valueOf(msdcodeS));
+
+			if (category_idS != null)
+				pstmt.setInt(p++, Integer.valueOf(category_idS));
+
+			if (med_name != null)
+				pstmt.setString(p++, med_name);
+
+			if (common_name != null)
+				pstmt.setString(p++, common_name);
+
+			if (unit != null)
+				pstmt.setString(p++, unit);
+
+			if (unit_details != null)
+				pstmt.setString(p++, unit_details);
+
+			if (unit_priceS != null)
+				pstmt.setDouble(p++, Double.valueOf(unit_priceS));
+
+			pstmt.setInt(p++, id);
+
+			int result = pstmt.executeUpdate();
+
+			return result > 0;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	/**
+	 * This function will print an exemplary Result of the getDrugs Function.
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 */
 	private static void testGetDrugs(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("category_id", "2");
 		JSONArray result = getDrugs(con, input);
 		System.out.println(result.toJSONString());
 	}
-	
+
+	/**
+	 * This function will print an exemplary Result of the getOrderSummary
+	 * Function.
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 */
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
-		input.put("order_start", "2013-09-21 00:00:00");
+		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
 		System.out.println(result.toJSONString());
 		input.put("summarize", "false");
 		result = getOrderSummary(con, input);
 		System.out.println(result.toJSONString());
 	}
-	
-	
-	
+
+	private static void testAddDrug(Connection con) {
+		JSONObject input = new JSONObject();
+		input.put("med_name", "Antimonogamysol");
+		input.put("msdcode", "12345");
+		input.put("category_id", "8");
+		input.put("common_name", "Hippierol");
+		input.put("unit", "Normalized Love Unit");
+		input.put("unit_details", "3% Weed / NLU");
+		input.put("unit_price", "1.2");
+
+		boolean result = addDrug(con, input);
+		System.out.println(result);
+
+	}
+
+	private static void testUpdateDrug(Connection con) {
+		JSONObject input = new JSONObject();
+		input.put("id", "55");
+		input.put("unit_price", "1305.54");
+
+		boolean result = updateDrug(con, input);
+		System.out.println(result);
+
+	}
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
-		testGetOrderSummary(con);
-//		testGetDrugs(con);
-//		input.put("facility_id", "1");
-//		input.put("order_start", "2013-09-21 00:00:00");
+		// testGetOrderSummary(con);
+		testUpdateDrug(con);
+		// testGetDrugs(con);
+		// input.put("facility_id", "1");
+		// input.put("order_start", "2013-09-21 00:00:00");
 		// input.put("drug_common_name", "Asp");
-//		JSONArray arr = getOrderSummary(con, input);
-//		System.out.println("");
-//		JSONObject one = (JSONObject) arr.get(0);
-//		JSONArray drugs = (JSONArray) one.get("drugs");
-//		JSONObject drug = (JSONObject) drugs.get(0);
-//		System.out.println(drug);
-//		System.out.println(arr);
+		// JSONArray arr = getOrderSummary(con, input);
+		// System.out.println("");
+		// JSONObject one = (JSONObject) arr.get(0);
+		// JSONArray drugs = (JSONArray) one.get("drugs");
+		// JSONObject drug = (JSONObject) drugs.get(0);
+		// System.out.println(drug);
+		// System.out.println(arr);
 		// arr = getCategoryNames(con);
 
 	}
