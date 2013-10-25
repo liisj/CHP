@@ -67,22 +67,23 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getDrugs")
 	public void getDrugs(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-
+		
 		JSONObject parameters = new JSONObject(request.getParameterMap());
 		JSONArray list = DataBaseFunctions.getDrugs(DataBaseFunctions.getWebConnection(),parameters);
 		
 		if (parameters.get("index") != null) {
 			
 			for (int i = 0; i < list.size(); i++) {
-				((JSONObject) (list.get(i))).put("index", parameters.get("index").toString());
+				((JSONObject) (list.get(i))).put("index", parameters.get("index"));
 			}
 		}
 		
-		System.out.println(parameters.get("category_id"));
+		
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
+	
 		
 	}
 

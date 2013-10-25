@@ -550,11 +550,11 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 	$("#statusgif").show();
 	var url = '<%=getDrugs%>';
 	
-	var catJSON;
+	var catJSON = {};
 	
 	console.log("category: " + category);
 	if (category != null) {
-		catJSON = {"category_id": category};
+		catJSON["category_id"] = category;
 	}
 	var request = $.getJSON(url, catJSON);	
 	request.done(function(data){
