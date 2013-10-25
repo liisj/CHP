@@ -1,6 +1,9 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
-<%@ include file="/html/newportlet2/loadDrugCategories.jsp" %>
 
+<portlet:actionURL name="getCategories" var="getCategories"
+	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+	<portlet:param name="ajaxAction" value="getData"></portlet:param>
+</portlet:actionURL>
 <portlet:actionURL name="getDrugs" var="getDrugs"
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
@@ -53,10 +56,6 @@
 <script type="text/javascript">
 //DMA code, from script.js
 
-function alertMe() {
-	alert("alert");
-}
-
 $(document).ready(function(){
     sideEl = 1;
 	mod = 0; // mod = 0 -> Inventory; mod = 1 -> New Order; mod = 2 -> View Order; mod = 3 -> Incoming package; mod = 4 -> Add to Inventory
@@ -71,7 +70,6 @@ $(document).ready(function(){
 	$("#Inventory").click(function(){										//Called when "Inventory" tab is selected
 		mod = 0; sideEl = 1;
 		loadDrugCategories();
-		alertMe();
 		$("#submodules").hide();
 		$("#clearBtn").hide();	
 		$("#backBtn").hide();
@@ -530,7 +528,22 @@ $(document).on("click",".UpdateStock", function() {
 		});	
 }
  
-
+ function loadDrugCategories () {											//Retrieves from DMA server the category names and displays them in side bar
+	
+	var url = '<%=getCategories%>';
+	$("#statusgif").show();
+	
+	var request = jQuery.getJSON(url);
+	request.done(function(data){
+		$("#statusgif").hide();
+		drawSideCol("#sidecol",data,"drugCategories");
+		$("#side_0").click();
+	});
+	request.fail(function(jqXHR, textStatus) {
+ 		//createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
+		$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
+	});
+}
 
 function showDrugs(category){ 														//Retrieves drug information from DB and displays it to the user
 	
@@ -851,6 +864,7 @@ function drawTextTable(tbody){
 						primary: "ui-icon-check"
 					}
 				});
+
 			break;
 		case 2:
 			$("<p>").text("Requested Qty: []")
@@ -896,6 +910,7 @@ function drawTextTable(tbody){
 					},
 					text: false
 				});
+
 			break;
 		case 4:			
 			$("<p>").text("Received Qty: []")
@@ -912,23 +927,6 @@ function drawTextTable(tbody){
 		}
 		trow.appendTo(tbody);
 	}
-}
-
-function loadDrugCategories () {											//Retrieves from DMA server the category names and displays them in side bar
-	console.log("drug categories new");
-	var url = '<%=getCategories%>';
-	$("#statusgif").show();
-	
-	var request = jQuery.getJSON(url);
-	request.done(function(data){
-		$("#statusgif").hide();
-		drawSideCol("#sidecol",data,"drugCategories");
-		$("#side_0").click();
-	});
-	request.fail(function(jqXHR, textStatus) {
- 		//createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
-		$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
-	});
 }
 
 function showNewInvSummary(){												//Displays a summary of the drugs that will be added to Inventory
@@ -1271,6 +1269,7 @@ function drawSideCol (tbody,info,type){
 		.attr("for","sideAddBtn")
 		.attr("id","sideAddLbl")
 		.text("ADD NEW DRUG");
+
 		button.appendTo(tbody);
 		label.appendTo(tbody);
 	}
@@ -1309,6 +1308,14 @@ function drawSideCol (tbody,info,type){
 }
 </script>
      
+
+
+
+
+
+
+
+
         <script>        // DMA code from index.html
 
         $(function() {
@@ -1409,5 +1416,3 @@ function drawSideCol (tbody,info,type){
         </div>
 </body>
 </html>
-
-<!--  end DMA code  -->
