@@ -579,7 +579,7 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 			else
 				$("#amount_" + i).attr("value",data[i].suggested);
 		}
-		
+		$(".col3").buttonset();		
 	});
 }
 
@@ -1273,17 +1273,16 @@ function drawSideCol (tbody,info,type){
 		button.appendTo(tbody);
 		label.appendTo(tbody);
 	}
-	$('#sidecol').buttonset();
 	
 	for (var r = 0; r < info.length; r++){		
 		var button = $("<input>");
+		var label = $("<label>");
 		button
 			.attr("id","sideBtn_" + r)
 			.attr("type","radio")
 			.attr("name","sideBtns");
 		switch (type){
-		case "drugCategories":	
-			var label = $("<label>");
+		case "drugCategories":
 			label
 				.attr("for","sideBtn_" + r)
 				.attr("id","side_" + r)
@@ -1292,7 +1291,6 @@ function drawSideCol (tbody,info,type){
 				.text(info[r].category_name);
 			break;
 		case "Orders":
-			var label = $("<label>");
 			label
 				.attr("for","sideBtn_" + r)
 				.attr("id","side_" + r)
@@ -1303,8 +1301,8 @@ function drawSideCol (tbody,info,type){
 		}
 		button.appendTo(tbody);
 		label.appendTo(tbody);
-		$('#sidecol').buttonset();
 	}
+	$('#sidecol').buttonset();
 }
 </script>
      

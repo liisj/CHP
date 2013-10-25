@@ -1,4 +1,10 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
 
-<div class="CHPTitle">Community Health Portal</div>
-<div class="subTitle">Learning Materials</div>
+<html>
+<body>
+<div class="trainingBody">
+<div class="CHPTitle" align="center">Community Health Portal</div>
+<div class="subTitle" align="center">Learning Materials</div>
+</div>
+</body>
+</html>

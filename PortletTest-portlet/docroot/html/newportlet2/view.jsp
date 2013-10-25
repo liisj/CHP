@@ -6,15 +6,29 @@
 <portlet:renderURL var="trainingURL">
         <portlet:param name="jspPage" value="/html/newportlet2/training.jsp"/>
 </portlet:renderURL>
-
-<div class="buttonLink"> 
-<br/><a href="<%= DMAurl %>">Drug Management Application</a>
+<html>
+<body>
+<div class="buttonLink" align="center"> 
+<br/><a class="link" href="<%= DMAurl %>">Drug Management Application</a>
 </div>
 <p/>
-<div class="buttonLink">
-<br/><a href="<%= trainingURL %>">On-the-job training</a>
+<div class="buttonLink" align="center">
+<br/><a class="link" href="<%= trainingURL %>">On-the-job training</a>
 </div>
 
-<!--<aui:form action="<%= DMAurl %>">
+<!-- 
+<div class="buttonLink2">
+<aui:form action="<%= DMAurl %>">
     <input type="submit" value="DMA">
-</aui:form>-->
+</aui:form>
+</div>
+ -->
+ 
+<script type="text/javascript">
+$(function() {
+    $( "input[type=submit], a[class=link], button" )
+      .button();
+      });
+  </script>
+</body>
+</html>

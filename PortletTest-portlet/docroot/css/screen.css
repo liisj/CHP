@@ -194,7 +194,7 @@ p {padding: 5px 0;}
 }
 
 .col1,.col2{
-	width: 40%;
+	width: 35%;
 }
 
 .col3{
@@ -235,12 +235,30 @@ p {padding: 5px 0;}
 
 .buttonLink {
 	font-size: 20px;
+}
+
+
+.link {
+	width: 300px;
+	box-shadow: 5px 5px #DEDEDE;
+}
+
+.CHPTitle {
+	color: #eb8f00;
+	font-size: 60px;
+	text-shadow: 1px 1px #DEDEDE;
+}
+
+.subTitle {
+	color: #eb8f00;
+	text-shadow: 1px 1px #DEDEDE;
+	font-size: 30px;
+}
+
+.trainingBody {
 	background-color: #FFF;
 	border: 1px solid #DEDEDE;
 	border-color: #C0C2C5;
-	width: 300px;
-	border-radius: 5px;
-	box-shadow: 5px 5px #DEDEDE;
-	line-height: 30px;
-  	vertical-align: middle;
+	margin: 0;
+	border-radius: 4px;
 }
