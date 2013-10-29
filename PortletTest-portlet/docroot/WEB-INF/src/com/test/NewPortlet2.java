@@ -1,11 +1,13 @@
 package com.test;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletException;
+import javax.portlet.PortletPreferences;
 import javax.portlet.ProcessAction;
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,6 +33,8 @@ public class NewPortlet2 extends MVCPortlet {
 			}
 	
 
+	// DMA functions
+	
 	/**
 	 * 
 	 * @param request Ignored
@@ -40,8 +44,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "getCategories")
-	public void getCategories(ActionRequest request, ActionResponse response)
+	@ProcessAction(name = "getDrugCategories")
+	public void getDrugCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
 		JSONObject parameters = new JSONObject(request.getParameterMap());
@@ -288,5 +292,125 @@ public class NewPortlet2 extends MVCPortlet {
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 	}
+
 	
+	// On-the-job training functions
+	
+	public void search(ActionRequest actionRequest,
+			ActionResponse actionResponse)
+			throws IOException, PortletException {
+	
+		System.out.println("searching...");
+	}
+	
+	@ProcessAction(name = "getTopCategories")
+	public void getTopCategories(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		JSONArray list = new JSONArray();
+        JSONObject cat1 = new JSONObject();
+        JSONObject cat2 = new JSONObject();
+        JSONObject cat3 = new JSONObject();
+        JSONObject cat4 = new JSONObject();
+        JSONObject cat5 = new JSONObject();
+        cat1.put("id", 10);
+        cat1.put("name", "Children");
+        cat2.put("id", 20);
+        cat2.put("name", "Pregnant women");
+        cat3.put("id", 30);
+        cat3.put("name", "Elderly");
+        cat4.put("id", 40);
+        cat4.put("name", "Infections");
+        cat5.put("id", 50);
+        cat5.put("name", "Mental health");
+        list.add(cat1);
+        list.add(cat2);
+        list.add(cat3);
+        list.add(cat4);
+        list.add(cat5);
+		
+		 HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+         httpResponse.setContentType("text/x-json;charset=UTF-8");
+         ServletResponseUtil.write(httpResponse, list.toJSONString());
+		
+	}
+	
+	@ProcessAction(name = "getSubCategories")
+	public void getSubCategories(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		String catId = request.getParameter("category_id");
+		System.out.println("getSubCategories reached");
+		System.out.println("catID in getSubCategories: " + catId);
+		
+		JSONArray list = new JSONArray();
+        JSONObject cat1 = new JSONObject();
+        JSONObject cat2 = new JSONObject();
+        JSONObject cat3 = new JSONObject();
+        JSONObject cat4 = new JSONObject();
+        JSONObject cat5 = new JSONObject();
+        cat1.put("id", 10);
+        cat1.put("name", "Clinical disorders");
+        cat2.put("id", 20);
+        cat2.put("name", "Relationships");
+        cat3.put("id", 30);
+        cat3.put("name", "Medical and Developmental Disorders");
+        cat4.put("id", 40);
+        cat4.put("name", "Psychosocial Stressors");
+        cat5.put("id", 50);
+        cat5.put("name", "Emotional and Social Functioning");
+        list.add(cat1);
+        list.add(cat2);
+        list.add(cat3);
+        list.add(cat4);
+        list.add(cat5);
+		
+        //response.setRenderParameter("jspPage","/html/newportlet2/subCategories.jsp");
+        request.setAttribute("subCategories",list.toJSONString());
+		
+	}
+	
+/*	public void doView(RenderRequest renderRequest, RenderResponse renderResponse)
+			throws IOException, PortletException {
+			    super.doView(renderRequest, renderResponse);
+			} */
+	
+	@Override
+    public void processAction(
+            ActionRequest actionRequest, ActionResponse actionResponse)
+        throws IOException, PortletException {
+		
+		System.out.println("processAction reached");	
+		
+        PortletPreferences prefs = actionRequest.getPreferences();
+        Map<String,String[]> paramMap = actionRequest.getParameterMap();
+        Enumeration<String> attrNames = actionRequest.getAttributeNames();
+        
+        for (String key : paramMap.keySet()) {
+        	System.out.println("Key: " + key + ", Value: " + paramMap.get(key)[0]);
+        }
+        
+        while (attrNames.hasMoreElements()) {
+        	String attrName = attrNames.nextElement();
+        	System.out.println("Attribute key: " + attrName + ", Attribute value: " + actionRequest.getAttribute(attrName));
+        }
+
+        String catId = actionRequest.getParameter("category_id");
+        
+        System.out.println("catId: " + catId);
+
+        if (catId != null) {
+            prefs.setValue("category_id", catId);
+            prefs.store();
+        }
+        
+        String jspPage = actionRequest.getParameter("jspPage");
+        if (jspPage != null) {
+        	actionResponse.setRenderParameter("jspPage", jspPage);
+        }
+
+        super.processAction(actionRequest, actionResponse);
+    }
+
 }
+

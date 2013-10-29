@@ -1,6 +1,6 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
 
-<portlet:actionURL name="getCategories" var="getCategories"
+<portlet:actionURL name="getDrugCategories" var="getDrugCategories"
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
@@ -501,7 +501,7 @@ $(document).on("click",".UpdateStock", function() {
  
  function addCategoryDropdown(cell, id) {
 	 
-	var url = '<%=getCategories%>';
+	var url = '<%=getDrugCategories%>';
 		$("#statusgif").show();
 		
 		var request = jQuery.getJSON(url);
@@ -530,7 +530,7 @@ $(document).on("click",".UpdateStock", function() {
  
  function loadDrugCategories () {											//Retrieves from DMA server the category names and displays them in side bar
 	
-	var url = '<%=getCategories%>';
+	var url = '<%=getDrugCategories%>';
 	$("#statusgif").show();
 	
 	var request = jQuery.getJSON(url);
@@ -1370,7 +1370,7 @@ function drawSideCol (tbody,info,type){
                                 <button id= "backBtn"></button>
                                 <button id= "IncPack" class="optBtn"></button>                                
                         </div>
-                        <img src="<%= request.getContextPath()%>/css/custom-theme/images/loading-gif-animation.gif" alt="[loading...]" name="statusgif" width="24" height="20" id="statusgif">        
+                        <img src="<%= request.getContextPath()%>/css/images/loading-gif-animation.gif" alt="[loading...]" name="statusgif" width="24" height="20" id="statusgif">        
                         <br /><br />
                         <div id="submodules">
                                 <input type="radio" id="newOrder" name="radio1" checked="checked" /><label class="submods" for="newOrder">New Order</label>

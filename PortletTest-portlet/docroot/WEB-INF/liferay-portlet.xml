@@ -18,7 +18,8 @@
 		<header-portlet-css>/css/screen.css</header-portlet-css>
 		<header-portlet-css>/css/jquery-ui-1.10.3.custom.css</header-portlet-css>
 		<header-portlet-css>/css/main.css</header-portlet-css>
-		<header-portlet-css>/css/custom-theme/images/loading-gif-animation.gif</header-portlet-css>
+		<header-portlet-css>/css/images/loading-gif-animation.gif</header-portlet-css>
+		<header-portlet-css>/css/images/Cakes.jpg</header-portlet-css>
 		
 		
 		<header-portlet-javascript>/js/jquery-1.10.2.js</header-portlet-javascript>
