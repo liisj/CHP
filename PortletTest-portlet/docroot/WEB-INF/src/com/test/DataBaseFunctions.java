@@ -8,14 +8,11 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayDeque;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.dbcp.BasicDataSource;
-import org.hsqldb.result.ResultMetaData;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.postgresql.PGConnection;
