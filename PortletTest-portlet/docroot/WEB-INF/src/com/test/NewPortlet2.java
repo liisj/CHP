@@ -3,6 +3,7 @@ package com.test;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Map;
+import java.sql.SQLException;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -23,6 +24,21 @@ import com.liferay.util.bridges.mvc.MVCPortlet;
  * Portlet implementation class NewPortlet2
  */
 public class NewPortlet2 extends MVCPortlet {
+	
+	
+	private static JSONObject requestToJSONObject(ActionRequest request) {
+		JSONObject result = new JSONObject();
+		Enumeration<String> parametersE = request.getParameterNames();
+		while (parametersE.hasMoreElements()) {
+			String parameter = parametersE.nextElement();
+			String value = request.getParameter(parameter);
+			result.put(parameter, value);
+		}
+		
+		return result;
+	}
+	
+	
  
 	public void updateBook(ActionRequest actionRequest,
 			ActionResponse actionResponse)
@@ -48,7 +64,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getDrugCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getCategories(DataBaseFunctions.getWebConnection());
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
@@ -72,7 +88,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getDrugs(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getDrugs(DataBaseFunctions.getWebConnection(),parameters);
 		
 		if (parameters.get("index") != null) {
@@ -108,7 +124,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
@@ -126,7 +142,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getSentOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("order_status", "sent");
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
@@ -146,7 +162,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getOrderItems(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("summarize", "false");
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
@@ -165,7 +181,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getSentOrderItems(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("order_status", "sent");
 		parameters.put("summarize", "false");
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
@@ -194,7 +210,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void updateStock(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.updateInventory(DataBaseFunctions.getWebConnection(),parameters);
 		
 
@@ -221,7 +237,7 @@ public class NewPortlet2 extends MVCPortlet {
 			throws PortletException, IOException {
 
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.updateOrderStatus(DataBaseFunctions.getWebConnection(),parameters);
 		
 
@@ -252,7 +268,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void addNewDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.addDrug(DataBaseFunctions.getWebConnection(),parameters);
 		
 
@@ -284,7 +300,7 @@ public class NewPortlet2 extends MVCPortlet {
 	public void updateDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
-		JSONObject parameters = new JSONObject(request.getParameterMap());
+		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.updateDrug(DataBaseFunctions.getWebConnection(),parameters);
 		
 
