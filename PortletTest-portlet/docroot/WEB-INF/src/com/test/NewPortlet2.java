@@ -356,8 +356,6 @@ public class NewPortlet2 extends MVCPortlet {
 			throws PortletException, IOException {
 		
 		String catId = request.getParameter("category_id");
-		System.out.println("getSubCategories reached");
-		System.out.println("catID in getSubCategories: " + catId);
 		
 		JSONArray list = new JSONArray();
         JSONObject cat1 = new JSONObject();
@@ -381,50 +379,78 @@ public class NewPortlet2 extends MVCPortlet {
         list.add(cat4);
         list.add(cat5);
 		
-        //response.setRenderParameter("jspPage","/html/newportlet2/subCategories.jsp");
-        request.setAttribute("subCategories",list.toJSONString());
+        HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+        httpResponse.setContentType("text/x-json;charset=UTF-8");
+        ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
 	
-/*	public void doView(RenderRequest renderRequest, RenderResponse renderResponse)
-			throws IOException, PortletException {
-			    super.doView(renderRequest, renderResponse);
-			} */
+	@ProcessAction(name = "getMaterials")
+	public void getMaterials(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		
+		JSONArray list = new JSONArray();
+		JSONObject mat1 = new JSONObject();
+		JSONObject mat2 = new JSONObject();
+		JSONObject mat3 = new JSONObject();
+		mat1.put("id", "11");
+		mat1.put("address", "mat1.jsp");
+		mat2.put("id", "22");
+		mat2.put("address", "mat2.jsp");
+		mat3.put("id", "33");
+		mat3.put("address", "mat3.jsp");
+		list.add(mat1);
+		list.add(mat2);
+		list.add(mat3);
+		
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+        httpResponse.setContentType("text/x-json;charset=UTF-8");
+        ServletResponseUtil.write(httpResponse, list.toJSONString());
+	}
 	
+	// Very necessary function, please don't delete anything in here
 	@Override
     public void processAction(
             ActionRequest actionRequest, ActionResponse actionResponse)
         throws IOException, PortletException {
 		
-		System.out.println("processAction reached");	
-		
         PortletPreferences prefs = actionRequest.getPreferences();
-        Map<String,String[]> paramMap = actionRequest.getParameterMap();
-        Enumeration<String> attrNames = actionRequest.getAttributeNames();
-        
-        for (String key : paramMap.keySet()) {
-        	System.out.println("Key: " + key + ", Value: " + paramMap.get(key)[0]);
-        }
-        
-        while (attrNames.hasMoreElements()) {
-        	String attrName = attrNames.nextElement();
-        	System.out.println("Attribute key: " + attrName + ", Attribute value: " + actionRequest.getAttribute(attrName));
-        }
+        String actionName = actionRequest.getParameter("actionName");
 
-        String catId = actionRequest.getParameter("category_id");
+        // Go to next subcategories page
         
-        System.out.println("catId: " + catId);
-
-        if (catId != null) {
-            prefs.setValue("category_id", catId);
-            prefs.store();
+        if (actionName != null) {
+        	
+        	switch (actionName) {
+        	
+        	case "subCategories" :
+        		
+        		String catId1 = actionRequest.getParameter("category_id");
+                if (catId1 != null) {
+                    prefs.setValue("category_id", catId1);
+                    prefs.store();
+                }
+                break;
+        	        	
+        	case "materials":
+        		String catId2 = actionRequest.getParameter("category_id");
+                if (catId2 != null) {
+                    prefs.setValue("category_id", catId2);
+                    prefs.store();
+                }
+                break;
+                
+        	case "goToMaterials" :
+        		System.out.println("go to materials...");
+        	}
         }
         
         String jspPage = actionRequest.getParameter("jspPage");
         if (jspPage != null) {
         	actionResponse.setRenderParameter("jspPage", jspPage);
         }
-
+        
         super.processAction(actionRequest, actionResponse);
     }
 

@@ -280,7 +280,8 @@ public class DataBaseFunctions {
 	public static JSONArray getDrugs(Connection con, JSONObject parameters) {
 
 		String drug_idS = (String) parameters.get("drug_id");
-		String category_idS = ((String[]) parameters.get("category_id"))[0];
+		String category_idS = 
+				(String) parameters.get("category_id");
 
 		int p = 0;
 		String where = "";

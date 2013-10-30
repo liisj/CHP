@@ -206,7 +206,6 @@ $(document).on("click",".AddReduce", function(){							//Called when either the 
 
 $(document).on("click",".sideBtn",function(){								//Called when any of the side bar elements is pressed
 	sideEl = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
-	console.log("sideEl: " + sideEl);
 	switch(mod){
 	case 0:
 		var cat_id = $("#side_"+ sideEl).attr("cat_id");
@@ -291,7 +290,7 @@ $(document).on("click",".newOrdBtn",function(){							//Called when a checkbox f
 	var drugIndex = parseInt(button.attr("for").substr(button.attr("id").indexOf("_")+1));
 	var JSONobj = {"category": sideEl};
 	var id = $("#check_" + drugIndex + drugIndex).attr("drugid");
-	var orderDrug = new drugObj(id, parseInt($("#amount_" + drugIndex).attr("value")));
+	var orderDrug = new drugObj(id, parseInt($("#amount_" + drugIndex).val()));
 	if (button.attr("aria-pressed")) {
 		newOrder.push(orderDrug);
 	}
@@ -309,7 +308,7 @@ $(document).on("click",".IncPackChkbox",function(){							//Called when a checkb
 		$("#statusgif").hide();
 		var orderid = data[sideEl-1].orderid;
 		var drugid = data[sideEl-1].drugid;
-		var orderDrug = new drugObj(drugid, parseInt($("#amount_" + drugIndex).attr("value")));
+		var orderDrug = new drugObj(drugid, parseInt($("#amount_" + drugIndex).val()));
 		if ($("#check_" + drugIndex + drugIndex).attr("aria-pressed"))
 			rcvOrder.drugsInfo.push(orderDrug);
 		else
@@ -478,7 +477,7 @@ $(document).on("click",".UpdateStock", function() {
 			.attr("drugid", drugid)
 			.text("Update info in database");
 		
-		var JSONobj = {"id": drugid};
+		var JSONobj = {"drug_id": drugid};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
 		request.done(function(data) {
 			
@@ -552,13 +551,11 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 	
 	var catJSON = {};
 	
-	console.log("category: " + category);
 	if (category != null) {
 		catJSON["category_id"] = category;
 	}
 	var request = $.getJSON(url, catJSON);	
 	request.done(function(data){
-		console.log(data);
 		$("#statusgif").hide();
 		putTable("drugs_table",data.length,3);
 		for (var i in data){
@@ -603,8 +600,8 @@ function loadOrders(url){												//Retrieves from DMA server the orders and 
 }
 
 function showOrderItems(url, sideEl){											//Displays all of the items contained in the selected order
-	$("#statusgif").show();	
-	console.log($("#side_" + parseInt(sideEl-1)).attr("orderid"));
+	// TODO: in new order, requested qty comes as NaN, that value needs to be taken from the global newOrder variable
+	$("#statusgif").show();
 	var JSONobj = {};
 	JSONobj["id"] = $("#side_" + parseInt(sideEl-1)).attr("orderid");
 	var request = $.getJSON(url, JSONobj);
@@ -633,15 +630,16 @@ function showOrderSummary() {												//Displays the user with the order summ
 	
 	for (var i in newOrder) {
 	
-		var JSONobj = {"id": newOrder[i].drugid, "index": i};
+		var JSONobj = {"drug_id": newOrder[i].drugid, "index": i};
 		var request = $.getJSON(url, JSONobj);
 		request.done(function(data){
+			console.log(data);
 			for (var j in data) {
 				$("#drugName_" + data[j].index).text(data[j].med_name);
 				putDrVal("#unIssue",data[j].index,data[j].unit_deatils);
 				putDrVal("#drugForm",data[j].index,data[j].unit);
 				putDrVal("#price",data[j].index,data[j].unit_price);
-				putDrVal("#reqLbl",data[j].index,newOrder[data[j].index].amount);
+				putDrVal("#reqLbl",data[j].index,newOrder[parseInt(data[j].index)].amount);
 				break;
 				$("#statusgif").hide();
 			}
@@ -935,7 +933,7 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 	putTable("InvSummary",rcvOrder.drugsInfo.length,3);
 	
 	for (var i in rcvOrder.drugsInfo){
-		var JSONobj = {"id": rcvOrder.drugsInfo[i].drugid, "index": i};
+		var JSONobj = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
 		request.done(function(data){
 			for (var j in data){

@@ -11,13 +11,9 @@ ActionRequest.ACTION_NAME, "search");
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
-<portlet:actionURL name="getSubCategories" var="getSubCategories"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
-	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-	<portlet:param name="jspPage" value="/html/newportlet2/subCategories.jsp"/>
-</portlet:actionURL>
 <portlet:actionURL var="subCategoriesURL">
-<portlet:param name="jspPage" value="/html/newportlet2/subCategories.jsp"/>
+	<portlet:param name="jspPage" value="/html/newportlet2/subCategories.jsp"/>
+	<portlet:param name="actionName" value="subCategories"/>
 </portlet:actionURL>
 
 <html>
@@ -66,16 +62,6 @@ $(document).ready(function() {
 		
 	});
 });
-
-$(".categoryButton").click(function() {
-	
-	console.log("categoryButton clicked");
-	var JSONobj = {"id": $(this).attr("category_id")};
-	var request = jQuery.getJSON('<%=getSubCategories%>', JSONobj);
-	request.done(function(data) {
-		console.log(data);
-	});
-});
 </script>
 </head>
 <body>
@@ -99,10 +85,6 @@ $(function() {
 <div id="categories">
 <span id="categoriesTitle">Categories for training materials:</span>
 <p/>
-<form method="POST" action="<%=subCategoriesURL.toString()%>">
-<input type="image" name="image" src="<%= request.getContextPath()%>/css/images/Cakes.jpg" style="height:150px;width:150px;"/>
-<input type="hidden" name="category_id" value="11">
-</form>
 </div>
 <div id="questions"></div>
 
