@@ -360,7 +360,7 @@ public class DataBaseFunctions {
 		StringBuilder whereBuilder = new StringBuilder("");
 
 		String summarizeS = (String) parameters.get("summarize");
-		boolean summarize = summarizeS == null ? true : Boolean
+		boolean summarize = summarizeS == null ? false : Boolean
 				.valueOf(summarizeS);
 
 		if (summarize)
