@@ -33,7 +33,7 @@ public class DataBaseFunctions {
 
 	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
-	static final String ADD_ORDER_START = "WITH meta AS (SELECT ? as fac_id,now() as ts, (?)::order_status as stat) "
+	static final String ADD_ORDER_START = "WITH meta AS (SELECT ? as fac_id,now() as ts, ? as stat) "
 			+ "INSERT INTO "
 			+ "orders (id,facility_id,drug_id,unit_number,timestamp,status) "
 			+ "VALUES ";
@@ -41,7 +41,7 @@ public class DataBaseFunctions {
 
 	static final String UPDATE_INVENTORY = "SELECT update_inventory(?,?,?)";
 
-	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = (?)::order_status"
+	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = ?"
 			+ " WHERE id = ?";
 
 	static final String GET_DRUGS = "SELECT * FROM drugs d ";
@@ -332,7 +332,7 @@ public class DataBaseFunctions {
 	 *            order_start (Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
 	 *            order_end (Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
 	 *            order_status (one of:
-	 *            'initiated','sent','delivered','canceled'<br>
+	 *            1 (initiated),2 (sent),3 (delivered), 4(canceled)<br>
 	 *            facility_id (int),<br>
 	 *            facility_name (String)
 	 * @return
@@ -395,7 +395,7 @@ public class DataBaseFunctions {
 
 		if (order_status != null)
 			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.status = ?::order_status");
+					"o.status = ?");
 
 		if (facility_id != null)
 			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
