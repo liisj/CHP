@@ -483,6 +483,7 @@ public class DataBaseFunctions {
 			e.printStackTrace();
 		}
 
+		System.out.println("orderSummary finishes now. Whatever happens next is not its fault.");
 		return resultArray;
 	}
 
@@ -736,7 +737,6 @@ public class DataBaseFunctions {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 		return false;
 	}
 
@@ -766,9 +766,9 @@ public class DataBaseFunctions {
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
 		System.out.println(result.toJSONString());
-		input.put("summarize", "false");
-		result = getOrderSummary(con, input);
-		System.out.println(result.toJSONString());
+//		input.put("summarize", "false");
+//		result = getOrderSummary(con, input);
+//		System.out.println(result.toJSONString());
 	}
 
 	private static void testAddDrug(Connection con) {
@@ -798,7 +798,8 @@ public class DataBaseFunctions {
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
 		// testGetOrderSummary(con);
-		testUpdateDrug(con);
+//		testUpdateDrug(con);
+		testGetOrderSummary(con);
 		// testGetDrugs(con);
 		// input.put("facility_id", "1");
 		// input.put("order_start", "2013-09-21 00:00:00");
