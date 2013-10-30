@@ -583,7 +583,8 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 function loadOrders(url){												//Retrieves from DMA server the orders and displays them in side bar
 	
 	$("#statusgif").show();
-	var request = $.getJSON(url);
+	var params = {"facility_id": "1"};
+	var request = $.getJSON(url, params);
 	request.done(function(data){
 		if (data.length){
 			var orderInfo = new Array(data.length);

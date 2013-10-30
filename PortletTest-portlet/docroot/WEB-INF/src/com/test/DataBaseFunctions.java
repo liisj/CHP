@@ -287,7 +287,7 @@ public class DataBaseFunctions {
 		String where = "";
 		if (drug_idS != null) {
 			where += p == 0 ? " WHERE " : " AND ";
-			where += "drug_id = ?";
+			where += "id = ?";
 			p++;
 		}
 
