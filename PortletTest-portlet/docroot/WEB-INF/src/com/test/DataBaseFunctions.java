@@ -194,7 +194,7 @@ public class DataBaseFunctions {
 	 * @param parameters
 	 *            JSON Object with the following parameters:<br>
 	 *            facility_id : (int),<br>
-	 *            status : (String),<br>
+	 *            status : (int),<br>
 	 * <br>
 	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
 	 *            unit_number (int)) will have to be added
@@ -212,13 +212,14 @@ public class DataBaseFunctions {
 			System.err.println("Not enough Liis, try again!");
 			return false;
 		}
+		String facility_idS = (String) parameters.get("facility_id");
+		String order_statusS = (String) parameters.get("status");
 
-		Integer facility_id = Integer.valueOf((String) parameters
-				.get("facility_id"));
-		String status = (String) parameters.get("status");
-
-		if (facility_id == null || status == null)
+		if (facility_idS == null || order_statusS == null)
 			return false;
+		
+		Integer facility_id = Integer.valueOf(facility_idS);
+		Integer status = Integer.valueOf(order_statusS);
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(ADD_ORDER_START);
@@ -248,7 +249,7 @@ public class DataBaseFunctions {
 			pstmt = con.prepareStatement(sb.toString());
 			int p = 1;
 			pstmt.setInt(p++, facility_id);
-			pstmt.setString(p++, status);
+			pstmt.setInt(p++, status);
 
 			Integer[] orderNum;
 			System.out.println("OrderNums size: " + orderNums.size());
@@ -426,7 +427,7 @@ public class DataBaseFunctions {
 				pstmt.setTimestamp(p++, order_end);
 
 			if (order_status != null)
-				pstmt.setString(p++, order_status);
+				pstmt.setInt(p++, Integer.valueOf(order_status));
 
 			if (facility_id != null)
 				pstmt.setInt(p++, facility_id);
@@ -494,7 +495,7 @@ public class DataBaseFunctions {
 	 * @param parameters
 	 *            JSON Object with the following parameters:<br>
 	 *            order_id (int),<br>
-	 *            status (String),<br>
+	 *            status (int),<br>
 	 * @return true if operation succeeded, false otherwise
 	 * @throws SQLException
 	 */
@@ -503,7 +504,7 @@ public class DataBaseFunctions {
 		if (parameters == null)
 			return false;
 		Integer order_id = Integer.valueOf((String) parameters.get("order_id"));
-		String status = (String) parameters.get("status");
+		Integer status = Integer.valueOf((String) parameters.get("status"));
 
 		if (order_id == null || status == null)
 			return false;
@@ -511,7 +512,7 @@ public class DataBaseFunctions {
 		PreparedStatement pstmt;
 		try {
 			pstmt = con.prepareStatement(UPDATE_ORDER_STATUS);
-			pstmt.setString(1, status);
+			pstmt.setInt(1, status);
 			pstmt.setInt(2, order_id);
 
 			pstmt.executeUpdate();
