@@ -233,6 +233,8 @@ p {padding: 5px 0;}
 	margin-right: 10px;
 }
 
+/* OJT stuff */
+
 .buttonLink {
 	font-size: 20px;
 }
@@ -261,4 +263,35 @@ p {padding: 5px 0;}
 	border-color: #C0C2C5;
 	margin: 0;
 	border-radius: 4px;
+	height: 1000px;
+}
+
+#categories {
+	width: 45%;
+	float: left;
+	padding-left: 5%;
+	padding-top: 75px;
+}
+
+#categoriesTitle {
+	color: #eb8f00;
+	text-shadow: 1px 1px #DEDEDE;
+	font-size: 30px;
+}
+
+#questions {
+	width: 45%;
+	float: right;
+	padding-right: 5%;
+	padding-top: 75px;
+}
+
+.categorySpan {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.categoryForm {
+	margin-bottom: 20px;
+	width: 150px;
 }
