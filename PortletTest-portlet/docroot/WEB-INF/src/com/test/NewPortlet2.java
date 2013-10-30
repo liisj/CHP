@@ -115,7 +115,7 @@ public class NewPortlet2 extends MVCPortlet {
 	 *            order_status (String, one of: 'initiated','sent','delivered','canceled'<br>
 	 *            facility_id (int),<br>
 	 *            facility_name (String), <br>
-	 *            summarized (Boolean)
+	 *            summarize (Boolean)
 	 * @param response
 	 * @throws PortletException
 	 * @throws IOException
@@ -123,13 +123,13 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getOrderSummary")
 	public void getOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-
+		
 		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, list.toJSONString());
+		//ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
 
@@ -212,7 +212,6 @@ public class NewPortlet2 extends MVCPortlet {
 
 		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.updateInventory(DataBaseFunctions.getWebConnection(),parameters);
-		
 
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
