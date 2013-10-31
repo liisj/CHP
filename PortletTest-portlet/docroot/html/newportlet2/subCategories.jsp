@@ -41,7 +41,7 @@ $(document).ready(function() {
 					.addClass("categoryButton")
 					.attr("type","image")
 					.attr("id","category_" + i)
-					.attr("src","<%= request.getContextPath()%>/css/images/Cakes.jpg")
+					.attr("src","<%= request.getContextPath()%>/css/images/glasses.jpg")
 					.attr("style","height:150px;width:150px;")
 					.attr("category_id", data[i].id)
 					.text(data[i].name)

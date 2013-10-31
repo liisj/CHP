@@ -129,7 +129,7 @@ public class NewPortlet2 extends MVCPortlet {
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
-		//ServletResponseUtil.write(httpResponse, list.toJSONString());
+		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
 

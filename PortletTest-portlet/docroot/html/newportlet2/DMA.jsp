@@ -149,7 +149,7 @@ $(document).on("click","#IncPack",function(){								//Called when the "Incoming
 			}
 		})
 		.attr("id","addToInvSummary");
-	loadOrders("sent");
+	loadOrders("2");
 });
 
 $(document).on("click","#addToInvSummary",function(){						//Called when the "Add to Inventory" button is pressed
@@ -222,7 +222,7 @@ $(document).on("click",".sideBtn",function(){								//Called when any of the si
 	case 3:
 		sideEl += 1;
 		rcvOrder = new orderObj();
-		showOrderItems(sideEl, "sent");
+		showOrderItems(sideEl, "2");
 		break;
 	}
 });
@@ -303,7 +303,7 @@ $(document).on("click",".IncPackChkbox",function(){							//Called when a checkb
 	var drugIndex = parseInt(checkbox.attr("id").substr(checkbox.attr("id").indexOf("_")+1));
 	$("#statusgif").show();
 	
-	var params = {"order_status": "sent", "facility_id" : "1", "summarize": "false"};
+	var params = {"order_status": "2", "facility_id" : "1", "summarize": "false"};
 	var request = $.getJSON('<%=getOrderSummary%>', params);	
 	request.done(function(data){
 		$("#statusgif").hide();
@@ -552,7 +552,6 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 	}
 	var request = $.getJSON(url, catJSON);	
 	request.done(function(data){
-		console.log(data);
 		$("#statusgif").hide();
 		putTable("drugs_table",data.length,3);
 		for (var i in data){
