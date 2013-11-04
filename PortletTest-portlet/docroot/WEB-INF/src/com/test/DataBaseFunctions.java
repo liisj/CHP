@@ -225,7 +225,7 @@ public class DataBaseFunctions {
 		sb.append(ADD_ORDER_START);
 
 		int c = 1;
-		ArrayDeque<Integer[]> orderNums = new ArrayDeque<>();
+		ArrayDeque<Integer[]> orderNums = new ArrayDeque<Integer[]>();
 		for (Object keyO : keySet) {
 			String key = (String) keyO;
 
