@@ -239,11 +239,11 @@ $(document).on("click","#addDrugBtn", function() {
 	var catMenu = document.getElementById("catIn");
 	var catIDs = catMenu.getAttribute("catIDs").split(",");
 	var JSONobj = {};
-	JSONobj["name"] = $("#drugNameIn").val();
+	JSONobj["med_name"] = $("#drugNameIn").val();
 	JSONobj["category_id"] = catIDs[catMenu.selectedIndex];
-	JSONobj["unitofissue"] = $("#unIssueIn").val();
-	JSONobj["drug_form"] = $("#drugFormIn").val();
-	JSONobj["price"] = parseInt($("#priceIn").val());
+	JSONobj["unit"] = $("#unIssueIn").val();
+	JSONobj["unit_details"] = $("#drugFormIn").val();
+	JSONobj["unit_price"] = parseInt($("#priceIn").val());
 	
 	$("#statusgif").show();
 	var sendData = $.ajax({url: '<%=addNewDrug%>', data: JSONobj});
@@ -264,11 +264,11 @@ $(document).on("click","#updateDrugBtn", function() {
 	var catIDs = catMenu.getAttribute("catIDs").split(",");
 	var JSONobj = {};
 	JSONobj["id"] = $(this).attr("drugid");
-	JSONobj["name"] = $("#drugNameIn").val();
+	JSONobj["med_name"] = $("#drugNameIn").val();
 	JSONobj["category_id"] = catIDs[catMenu.selectedIndex];
-	JSONobj["unitofissue"] = $("#unIssueIn").val();
-	JSONobj["drug_form"] = $("#drugFormIn").val();
-	JSONobj["price"] = parseInt($("#priceIn").val());
+	JSONobj["unit"] = $("#unIssueIn").val();
+	JSONobj["unit_details"] = $("#drugFormIn").val();
+	JSONobj["unit_price"] = parseInt($("#priceIn").val());
 	
 	$("#statusgif").show();
 	var sendData = $.ajax({url: '<%=updateDrug%>', data: JSONobj});
@@ -322,9 +322,12 @@ $(document).on("click",".UpdateStock", function() {
 	$("#statusgif").show();
 	
 	var drugIndex = ($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
-	var diff = parseInt($("#add_" + drugIndex).val()) - parseInt($("#reduce_" + drugIndex).val());
+	var add = parseInt($("#add_" + drugIndex).val());
+	var reduce = parseInt($("#reduce_" + drugIndex).val());
+	var diff = ( isNaN(add) ? 0 : add) - (isNaN(reduce) ? 0 : reduce);
 	var updateInfo = {};
 	updateInfo[$(this).attr("drugid")] = diff;
+	updateInfo["facility_id"] = "1";
 	
 	var sendUpdate = $.ajax({url: '<%=updateStock%>', data: updateInfo});
 	sendUpdate.done(function (msg){
@@ -356,104 +359,13 @@ $(document).on("click",".UpdateStock", function() {
 		.attr("id","title")
 		.addClass("Title")
 		.appendTo(cell);
-		
-	var drugNameRow = $("<tr>");
-	var drugNameLeft = $("<td>");
-	var drugNameRight = $("<td>");
 	
-	var drugNameLbl = $("<p>");
-	drugNameLbl
-		.text("Drug name: ")
-		.addClass("label")
-		.appendTo(drugNameLeft);
-	
-	var drugNameInput = $("<input>");
-	drugNameInput
-		.attr("type","text")
-		.attr("id","drugNameIn")
-		.appendTo(drugNameRight);
-	
-	drugNameLeft.appendTo(drugNameRow);
-	drugNameRight.appendTo(drugNameRow);
-	drugNameRow.appendTo(cell);
-	
-	var categoryRow = $("<tr>");
-	var categoryLeft = $("<td>");
-	var categoryRight = $("<td>");
-	
-	var categoryLbl = $("<p>");
-	categoryLbl
-		.text("Category: ")
-		.addClass("label")
-		.appendTo(categoryLeft);
-	
-	var catIDs = {};
-	addCategoryDropdown(categoryRight, "catIn");
-	
-	categoryLeft.appendTo(categoryRow);
-	categoryRight.appendTo(categoryRow);
-	categoryRow.appendTo(cell);
-	
-	var unIssueRow = $("<tr>");
-	var unIssueLeft = $("<td>");
-	var unIssueRight = $("<td>");
-	
-	var unIssueLbl = $("<p>");
-	unIssueLbl
-		.text("Unit of issue: ")
-		.addClass("label")
-		.appendTo(unIssueLeft);
-	
-	var unIssueInput = $("<input>");
-	unIssueInput
-		.attr("type","text")
-		.attr("id","unIssueIn")
-		.appendTo(unIssueRight);
-	
-	unIssueLeft.appendTo(unIssueRow);
-	unIssueRight.appendTo(unIssueRow);
-	unIssueRow.appendTo(cell);
-	
-	var drugFormRow = $("<tr>");
-	var drugFormLeft = $("<td>");
-	var drugFormRight = $("<td>");
-	
-	var drugFormLbl = $("<p>");
-	drugFormLbl
-		.text("Drug form: ")
-		.addClass("label")
-		.appendTo(drugFormLeft);
-	
-	var drugFormInput = $("<input>");
-	drugFormInput
-		.attr("type","text")
-		.attr("id","drugFormIn")
-		.appendTo(drugFormRight);
-	
-	drugFormLeft.appendTo(drugFormRow);
-	drugFormRight.appendTo(drugFormRow);
-	drugFormRow.appendTo(cell);
-	
-	var priceRow = $("<tr>");
-	var priceLeft = $("<td>");
-	var priceRight = $("<td>");
-	
-	var priceLbl = $("<p>");
-	priceLbl
-		.text("Price: ")
-		.addClass("label")
-		.appendTo(priceLeft);
-	
-	var priceInput = $("<input>");
-	priceInput
-		.attr("type","number")
-		.attr("min","0")
-		.attr("id","priceIn")
-		.appendTo(priceRight);
-	
-	priceLeft.appendTo(priceRow);
-	priceRight.appendTo(priceRow);
-	priceRow.appendTo(cell);
+	createInputField("Drug name: ", "drugNameIn", "text", cell);
+	createInputField("Common name: ", "commonNameIn", "text", cell);
+	createInputField("Category: ", "catIn", "category", cell);
+	createInputField("Unit of issue: ", "unIssueIn", "text", cell);
+	createInputField("Drug form: ", "drugFormIn", "text", cell);
+	createInputField("Price: ", "priceIn", "number", cell);
 	
 	var sendButton = $("<button>");	
 	sendButton.appendTo(cell);
@@ -476,8 +388,9 @@ $(document).on("click",".UpdateStock", function() {
 		var JSONobj = {"drug_id": drugid};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
 		request.done(function(data) {
-			
+			console.log(data);
 			$("#drugNameIn").val(data[0].med_name);
+			$("#commonNameIn").val(data[0].common_name);
 			
 			var catMenu = document.getElementById("catIn");
 			var catIDs = catMenu.getAttribute("catIDs").split(",");
@@ -493,6 +406,34 @@ $(document).on("click",".UpdateStock", function() {
 		});
 	}
 };
+
+function createInputField(label, id, type, cell) {
+	var row = $("<tr>");
+	var left = $("<td>");
+	var right = $("<td>");
+	
+	var label = $("<p>");
+	label
+		.text(label)
+		.addClass("label")
+		.appendTo(left);
+	
+	if (type == "category") {
+		addCategoryDropdown(right, id);
+	}
+	
+	else {
+		var drugNameInput = $("<input>");
+		drugNameInput
+			.attr("type",type)
+			.attr("id",id)
+			.appendTo(right);
+	}
+	
+	left.appendTo(row);
+	right.appendTo(row);
+	row.appendTo(cell);
+}
  
  function addCategoryDropdown(cell, id) {
 	 
@@ -555,13 +496,14 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 		$("#statusgif").hide();
 		putTable("drugs_table",data.length,3);
 		for (var i in data){
+			console.log(data);
 			$("#drugName_" + i).text(data[i].med_name);
 			$("#update_" + i).attr("drugid",data[i].id);
 			$("#edit_" + i).attr("drugid",data[i].id);
 			$("#check_" + i + i).attr("drugid",data[i].id);
 			putDrVal("#unIssue",i,data[i].unit);
 			putDrVal("#drugForm",i,data[i].unit_details);
-			putDrVal("#stock",i,data[i].current);
+			putDrVal("#stock",i,data[i].unit_number);
 			putDrVal("#price",i,data[i].unit_price);
 						
 			var drugIndex = getDrugIndex(data[i].id,newOrder);
@@ -587,7 +529,6 @@ function loadOrders(status){												//Retrieves from DMA server the orders a
 	
 	var request = $.getJSON('<%=getOrderSummary%>', params);
 	request.done(function(data){
-		console.log(data);
 		if (data.length){
 			var orderInfo = new Array(data.length);
 			for (var i in data)
@@ -623,15 +564,17 @@ function showOrderItems(sideEl, status){											//Displays all of the items c
 	request.done(function(data){
 		$("#statusgif").hide();
 		putTable("order",data.length,3);
+		
 		for (var i in data[0].drugs){
+			console.log("unit number: " + data[0].drugs[i].unit_number);
 			$("#drugName_" + i).text(data[0].drugs[i].med_name);
 			putDrVal("#unIssue",i,data[0].drugs[i].unit);
 			putDrVal("#drugForm",i,data[0].drugs[i].unit_details);
 			putDrVal("#price",i,data[0].drugs[i].unit_price);
 			putDrVal("#reqLbl",i,data[0].drugs[i].unit_number);
 			// TODO
-			putDrVal("#sentQty",i,data[0].drugs[i].amount);
-			$("#amount_" + i).attr("value",data[0].drugs[i].amount);
+			putDrVal("#sentQty",i,data[0].drugs[i].unit_number);
+			$("#amount_" + i).val(data[0].drugs[i].unit_number);
 			if (mod == 3)
 				rcvOrder.orderid = data[sideEl-1].orderid;			
 		}
@@ -653,7 +596,7 @@ function showOrderSummary() {												//Displays the user with the order summ
 		var JSONobj = {"drug_id": newOrder[i].drugid, "index": i};
 		var request = $.getJSON(url, JSONobj);
 		request.done(function(data){
-			console.log(data);
+			$("#statusgif").hide();
 			for (var j in data) {
 				$("#drugName_" + data[j].index).text(data[j].med_name);
 				putDrVal("#unIssue",data[j].index,data[j].unit);
@@ -661,7 +604,6 @@ function showOrderSummary() {												//Displays the user with the order summ
 				putDrVal("#price",data[j].index,data[j].unit_price);
 				putDrVal("#reqLbl",data[j].index,newOrder[parseInt(data[j].index)].amount);
 				break;
-				$("#statusgif").hide();
 			}
 		});
 	}
