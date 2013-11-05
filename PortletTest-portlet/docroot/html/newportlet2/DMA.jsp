@@ -346,13 +346,13 @@ $(document).on("click",".UpdateStock", function() {
 /* <--------- Function calls ---------> */
  
  function createDrugForm(mode, drugid) {
+	
 	var tbody = $("#inner-content");
 	tbody.html("");
 	var cell = $("<div>");
 	cell
 		.addClass("col1")
 		.appendTo(tbody);
-	
 	
 	var title = $("<p>");
 	title
@@ -385,7 +385,7 @@ $(document).on("click",".UpdateStock", function() {
 			.attr("drugid", drugid)
 			.text("Update info in database");
 		
-		var JSONobj = {"drug_id": drugid};
+		var JSONobj = {"drug_id": drugid, "facility_id": 1};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
 		request.done(function(data) {
 			console.log(data);
@@ -407,14 +407,14 @@ $(document).on("click",".UpdateStock", function() {
 	}
 };
 
-function createInputField(label, id, type, cell) {
+function createInputField(labelText, id, type, cell) {
 	var row = $("<tr>");
 	var left = $("<td>");
 	var right = $("<td>");
 	
 	var label = $("<p>");
 	label
-		.text(label)
+		.text(labelText)
 		.addClass("label")
 		.appendTo(left);
 	
@@ -490,14 +490,20 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 	
 	if (category != null) {
 		catJSON["category_id"] = category;
+		catJSON["facility_id"] = 1;
 	}
 	var request = $.getJSON(url, catJSON);	
 	request.done(function(data){
 		$("#statusgif").hide();
 		putTable("drugs_table",data.length,3);
 		for (var i in data){
-			console.log(data);
-			$("#drugName_" + i).text(data[i].med_name);
+			
+			var drugName = data[i].med_name;
+			if (data[i].common_name.length != 0) {
+				drugName += (" (" + data[i].common_name + ")"); 
+			}
+			
+			$("#drugName_" + i).text(drugName);
 			$("#update_" + i).attr("drugid",data[i].id);
 			$("#edit_" + i).attr("drugid",data[i].id);
 			$("#check_" + i + i).attr("drugid",data[i].id);
@@ -564,7 +570,7 @@ function showOrderItems(sideEl, status){											//Displays all of the items c
 	request.done(function(data){
 		$("#statusgif").hide();
 		putTable("order",data.length,3);
-		
+		console.log(data[0]);
 		for (var i in data[0].drugs){
 			console.log("unit number: " + data[0].drugs[i].unit_number);
 			$("#drugName_" + i).text(data[0].drugs[i].med_name);
@@ -593,12 +599,18 @@ function showOrderSummary() {												//Displays the user with the order summ
 	
 	for (var i in newOrder) {
 	
-		var JSONobj = {"drug_id": newOrder[i].drugid, "index": i};
+		var JSONobj = {"drug_id": newOrder[i].drugid, "index": i, "facility_id": 1};
 		var request = $.getJSON(url, JSONobj);
 		request.done(function(data){
 			$("#statusgif").hide();
 			for (var j in data) {
-				$("#drugName_" + data[j].index).text(data[j].med_name);
+				
+				var drugName = data[j].med_name;
+				if (data[j].common_name != null) {
+					drugName += ("(" + data[j].common_name + ")"); 
+				}
+				
+				$("#drugName_" + data[j].index).text(drugName);
 				putDrVal("#unIssue",data[j].index,data[j].unit);
 				putDrVal("#drugForm",data[j].index,data[j].unit_details);
 				putDrVal("#price",data[j].index,data[j].unit_price);
@@ -895,12 +907,15 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 	putTable("InvSummary",rcvOrder.drugsInfo.length,3);
 	
 	for (var i in rcvOrder.drugsInfo){
-		var JSONobj = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i};
+		var JSONobj = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i, "facility_id": 1};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
 		request.done(function(data){
 			for (var j in data){
-				
-				$("#drugName_" + data[j].index).text(data[j].med_name);
+				var drugName = data[j].med_name;
+				if (data[j].common_name != null) {
+					drugName += ("(" + data[j].common_name + ")") 
+				}
+				$("#drugName_" + data[j].index).text(drugName);
 				putDrVal("#unIssue",data[j].index,data[j].unit);
 				putDrVal("#drugForm",data[j].index,data[j].unit_details);
 				putDrVal("#price",data[j].index,data[j].unit_price);
@@ -917,37 +932,20 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 
 function sendOrder(){														//Sends order information to the DMA server
 	$("#statusgif").show();
-			
-		// TODO: is this query even necessary?	
-		var getDrugs = $.getJSON('<%=getDrugs%>');
-		getDrugs.done(function(data){
-			var orderToSend = {};
-			orderToSend["author"] = "author";
-			orderToSend["created_at"] = getDateFormat();
-			orderToSend["facility"] = "facility";
-			orderToSend["items"] = getOrderItems(data.rows);		
-			orderToSend["status"] = "submitted";
-			orderToSend["type"] = "order";
-			
-			var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: orderToSend});
-			sendNewOrder.done(function (msg){
-				$("#statusgif").hide();
-				console.log("order sent, success");
-				////createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your order has been successfully sent!");
-				newOrder = new Array();
-				$("#newOrder").click();					
-			});
-			sendNewOrder.fail(function(error2){
-				console.log("order failure");
-				////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the order. Please try again");
-				$("#newOrder").click();
-			});			
-		});
-		getDrugs.fail(function(error2){
-			console.log("getDrugs failed");
-			////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the order. Please try again");
-			$("#newOrder").click();
-		});
+	console.log(newOrder);
+	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: JSON.parse(newOrder)});
+	sendNewOrder.done(function (msg){
+		$("#statusgif").hide();
+		console.log("order sent, success");
+		////createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your order has been successfully sent!");
+		newOrder = new Array();
+		$("#newOrder").click();					
+	});
+	sendNewOrder.fail(function(error2){
+		console.log("order failure");
+		////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the order. Please try again");
+		$("#newOrder").click();
+	});			
 }
 
 function updateVal(field,index,newVal){										//Updates a single value in database and displays the change to the user

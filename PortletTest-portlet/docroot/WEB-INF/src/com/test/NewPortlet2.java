@@ -1,5 +1,7 @@
 package com.test;
 
+import com.test.DataBaseFunctions;
+
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Map;
@@ -307,6 +309,13 @@ public class NewPortlet2 extends MVCPortlet {
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("text/x-json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
+	}
+	
+	@ProcessAction(name = "sendOrder")
+	public void sendOrder(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		
 	}
 
 	
