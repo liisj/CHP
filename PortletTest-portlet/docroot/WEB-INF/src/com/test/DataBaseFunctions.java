@@ -44,7 +44,10 @@ public class DataBaseFunctions {
 	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = ?"
 			+ " WHERE id = ?";
 
-	static final String GET_DRUGS = "SELECT * FROM drugs d ";
+	static final String GET_DRUGS = "SELECT d.*,COALESCE(i.unit_number,0) "
+			+ "FROM drugs d "
+			+ "LEFT OUTER JOIN (SELECT * FROM inventories WHERE facility_id = ?) i "
+			+ "ON (d.id = i.drug_id)  ";
 
 	static final String ADD_DRUG = "INSERT INTO drugs(id, msdcode, "
 			+ "category_id, med_name, common_name, unit, unit_details, unit_price) "
@@ -283,6 +286,13 @@ public class DataBaseFunctions {
 		String drug_idS = (String) parameters.get("drug_id");
 		String category_idS = 
 				(String) parameters.get("category_id");
+		
+		String facility_idS = (String) parameters.get("facility_id");
+		
+		if (facility_idS == null)
+			return null;
+		
+		
 
 		int p = 0;
 		String where = "";
@@ -299,17 +309,22 @@ public class DataBaseFunctions {
 
 		PreparedStatement pstmt;
 		try {
-			JSONArray result = new JSONArray();
-			pstmt = con.prepareStatement(GET_DRUGS + where);
+			pstmt = con.prepareStatement(GET_DRUGS + where + " ORDER BY med_name ASC");
+			System.out.println(pstmt.toString());
+			Integer facility_id = Integer.valueOf(facility_idS);
+			
+			p = 1;
+			
+			pstmt.setInt(p++, facility_id);
 
 			if (drug_idS != null) {
 				Integer drug_id = Integer.valueOf(drug_idS);
-				pstmt.setInt(1, drug_id);
+				pstmt.setInt(p++, drug_id);
 			}
 
 			if (category_idS != null) {
 				Integer category_id = Integer.valueOf(category_idS);
-				pstmt.setInt(1, category_id);
+				pstmt.setInt(p++, category_id);
 			}
 
 			ResultSet rs = pstmt.executeQuery();
@@ -750,6 +765,7 @@ public class DataBaseFunctions {
 	 */
 	private static void testGetDrugs(Connection con) {
 		JSONObject input = new JSONObject();
+		input.put("facility_id", "1");
 		input.put("category_id", "2");
 		JSONArray result = getDrugs(con, input);
 		System.out.println(result.toJSONString());
@@ -801,8 +817,8 @@ public class DataBaseFunctions {
 		Connection con = getWebConnection();
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
-		testGetOrderSummary(con);
-		// testGetDrugs(con);
+//		testGetOrderSummary(con);
+		 testGetDrugs(con);
 		// input.put("facility_id", "1");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		// input.put("drug_common_name", "Asp");
