@@ -160,6 +160,7 @@ public class DataBaseFunctions {
 
 			Connection con = dataSourceWeb.getPooledConnection()
 					.getConnection();
+			con.setAutoCommit(true);
 			PGConnection pgCon = (PGConnection) con;
 			pgCon.addDataType("drug_ext", Class.forName("com.test.PGDrug"));
 			return con;
@@ -650,7 +651,6 @@ public class DataBaseFunctions {
 			pstmt.setDouble(p++, unit_price);
 			System.out.println(pstmt.toString());
 			int result = pstmt.executeUpdate();
-
 			return result > 0;
 
 		} catch (SQLException e) {
@@ -723,6 +723,7 @@ public class DataBaseFunctions {
 		try {
 			PreparedStatement pstmt = con.prepareStatement(UPDATE_DRUG_START
 					+ middle + UPDATE_DRUG_END);
+			System.out.println(pstmt.toString());
 			int p = 1;
 			if (msdcodeS != null)
 				pstmt.setInt(p++, Integer.valueOf(msdcodeS));
