@@ -77,9 +77,12 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @param request
 	 * 				Possible parameters:<br>
-	 * 				drug_id (int),<br>
-	 * 				category_id (int)
-	 * 				index (int)
+	 *              Mandatory:<br>
+	 *            	facility_id : (int)<br>
+	 *            	Optional:<br>
+	 *            	drug_id : (int),<br>
+	 *            	category_id : (int)<br>
+	 * 				index : (int)
 	 * @param response
 	 * @throws PortletException
 	 * @throws IOException

@@ -276,7 +276,10 @@ public class DataBaseFunctions {
 	 * @param con
 	 *            Connection to be used
 	 * @param parameters
-	 *            JSONObject with the following OPTIONAL parameters:<br>
+	 *            JSONObject with the following parameters:<br>
+	 *            Mandatory:<br>
+	 *            facility_id : (int)<br>
+	 *            Optional:<br>
 	 *            drug_id : (int),<br>
 	 *            category_id : (int)
 	 * @return JSONArray containing Drugs, stored as JSONObjects
@@ -819,7 +822,8 @@ public class DataBaseFunctions {
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
 //		testGetOrderSummary(con);
-		 testGetDrugs(con);
+//		 testGetDrugs(con);
+		testAddDrug(con);
 		// input.put("facility_id", "1");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		// input.put("drug_common_name", "Asp");
