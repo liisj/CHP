@@ -44,7 +44,7 @@ public class DataBaseFunctions {
 	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = ?"
 			+ " WHERE id = ?";
 
-	static final String GET_DRUGS = "SELECT d.*,COALESCE(i.unit_number,0) "
+	static final String GET_DRUGS = "SELECT d.*,COALESCE(i.unit_number,0) as unit_number "
 			+ "FROM drugs d "
 			+ "LEFT OUTER JOIN (SELECT * FROM inventories WHERE facility_id = ?) i "
 			+ "ON (d.id = i.drug_id)  ";
