@@ -6,7 +6,7 @@
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
 <portlet:actionURL var="materialsURL">
-	<portlet:param name="jspPage" value="/html/newportlet2/materials.jsp"/>
+	<portlet:param name="jspPage" value="/html/newportlet2/materialsList.jsp"/>
 	<portlet:param name="actionName" value="materials"/>
 </portlet:actionURL>
 

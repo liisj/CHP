@@ -4,7 +4,7 @@
         <portlet:param name="jspPage" value="/html/newportlet2/DMA.jsp"/>
 </portlet:renderURL>
 <portlet:renderURL var="trainingURL">
-        <portlet:param name="jspPage" value="/html/newportlet2/training.jsp"/>
+        <portlet:param name="jspPage" value="/html/newportlet2/trainingFront.jsp"/>
 </portlet:renderURL>
 <html>
 <body>
