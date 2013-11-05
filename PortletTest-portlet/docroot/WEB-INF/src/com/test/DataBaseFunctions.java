@@ -5,9 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Struct;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,8 +17,16 @@ import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.postgresql.PGConnection;
 import org.postgresql.ds.PGConnectionPoolDataSource;
+import org.postgresql.ds.common.PGObjectFactory;
+import org.postgresql.util.PGobject;
+
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONSerializer;
 
 public class DataBaseFunctions {
 
@@ -104,7 +114,19 @@ public class DataBaseFunctions {
 			break;
 		case Types.VARCHAR:
 		case Types.CHAR:
-			jsonObject.put(columnName, resultSet.getString(columnName));
+			String a = resultSet.getString(columnName);
+			try {
+				Object jsonO = new JSONParser().parse(a);
+				if (jsonO instanceof JSONObject)
+					jsonObject.put(columnName, (JSONObject) jsonO);
+				else if (jsonO instanceof JSONArray)
+					jsonObject.put(columnName, (JSONArray) jsonO);
+				else
+					jsonObject.put(columnName, a);
+			} catch (ParseException e) {
+				jsonObject.put(columnName, a);
+			}
+//			jsonObject.put(columnName, resultSet.getString(columnName));
 			break;
 		case Types.NUMERIC:
 		case Types.DOUBLE:
@@ -162,12 +184,13 @@ public class DataBaseFunctions {
 					.getConnection();
 			con.setAutoCommit(true);
 			PGConnection pgCon = (PGConnection) con;
-			pgCon.addDataType("drug_ext", Class.forName("com.test.PGDrug"));
+			
+//			pgCon.addDataType("drug_ext", Class.forName("com.test.PGDrug"));
 			return con;
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+//		} catch (ClassNotFoundException e) {
+//			e.printStackTrace();
 		}
 		return null;
 	}
@@ -276,7 +299,10 @@ public class DataBaseFunctions {
 	 * @param con
 	 *            Connection to be used
 	 * @param parameters
-	 *            JSONObject with the following OPTIONAL parameters:<br>
+	 *            JSONObject with the following parameters:<br>
+	 *            Mandatory:<br>
+	 *            facility_id : (int)<br>
+	 *            Optional:<br>
 	 *            drug_id : (int),<br>
 	 *            category_id : (int)
 	 * @return JSONArray containing Drugs, stored as JSONObjects
@@ -393,7 +419,7 @@ public class DataBaseFunctions {
 					.append(", sum(d.unit_price*o.unit_number) as total_costs");
 		else
 			whereBuilder
-					.append(", (d.*,c.name,o.unit_number)::drug_ext AS drug ");
+					.append(", row_to_json((d.*,o.unit_number)::drug_ext)::text AS drug ");
 
 		whereBuilder.append(FROM_Order);
 
@@ -478,18 +504,13 @@ public class DataBaseFunctions {
 						drugs = new JSONArray();
 					}
 					jsonOrder = resultSetRowToJSONObject(rs);
-					jsonOrder.remove("unit_number");
-					// System.out.println(jsonOrder);
 					currentOrderID = row_order_id;
 				}
-
-				Object drugO = rs.getObject("drug");
-
-				PGDrug drug = (PGDrug) drugO;
-
-				JSONObject jsonDrug = drug.toJSONObject();
-
+				Object jsonO = new JSONParser().parse(rs.getString("drug"));
+				JSONObject jsonDrug = (JSONObject) new JSONParser().parse(rs.getString("drug"));
 				drugs.add(jsonDrug);
+				jsonOrder.remove("unit_number");
+				jsonOrder.remove("drug");
 
 			}
 			if (found_sth) {
@@ -498,6 +519,9 @@ public class DataBaseFunctions {
 			}
 
 		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -769,7 +793,7 @@ public class DataBaseFunctions {
 		input.put("facility_id", "1");
 		input.put("category_id", "2");
 		JSONArray result = getDrugs(con, input);
-		System.out.println(result.toJSONString());
+		System.out.println(Helper.niceJsonPrint(result, ""));
 	}
 
 	/**
@@ -782,10 +806,10 @@ public class DataBaseFunctions {
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
+		input.put("summarize", "true");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
-		System.out.println(result.toJSONString());
-//		input.put("summarize", "false");
+		System.out.println(Helper.niceJsonPrint(result, ""));
 //		result = getOrderSummary(con, input);
 //		System.out.println(result.toJSONString());
 	}
@@ -801,7 +825,7 @@ public class DataBaseFunctions {
 		input.put("unit_price", "1.2");
 
 		boolean result = addDrug(con, input);
-		System.out.println(result);
+		System.out.println(Helper.niceJsonPrint(result, ""));
 
 	}
 
@@ -814,12 +838,46 @@ public class DataBaseFunctions {
 		System.out.println(result);
 
 	}
+	
+	
+	private static void tryNewStuff() {
+		try {
+			Connection con = getWebConnection();
+			PreparedStatement pstmt = con.prepareStatement("SELECT o.id AS Order_ID, row_to_json((d.*,c.name,o.unit_number)::drug_ext) AS drug  FROM facilities f JOIN orders o ON f.id = o.facility_id JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id WHERE f.id = '1' ORDER BY o.id ASC");
+			System.out.println(pstmt.toString());
+			ResultSet rs = pstmt.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			
+			while (rs.next()) {
+				int type = rsmd.getColumnType(2);
+				Object bla = rs.getObject(2);
+				PGObjectFactory p = new PGObjectFactory();
+				PGobject str = (PGobject) bla;
+				System.out.println(str.getType());
+				System.out.println(str.getValue());
+				
+				System.out.println(type);
+				int[] a = {Types.JAVA_OBJECT,Types.OTHER,Types.STRUCT,Types.TIME,Types.TIMESTAMP};
+				for (int b : a) {
+					System.out.print(b+ ",");
+				}
+				System.out.println();
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
-//		testGetOrderSummary(con);
-		 testGetDrugs(con);
+		testGetOrderSummary(con);
+//		tryNewStuff();
+//		 testGetDrugs(con);
+//		testAddDrug(con);
 		// input.put("facility_id", "1");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		// input.put("drug_common_name", "Asp");
