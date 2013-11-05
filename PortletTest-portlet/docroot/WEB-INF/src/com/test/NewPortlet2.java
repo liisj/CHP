@@ -454,26 +454,23 @@ public class NewPortlet2 extends MVCPortlet {
         
         if (actionName != null) {
         	
-        	switch (actionName) {
         	
-        	case "subCategories" :
+        	if (actionName.equals("subCategories")) {
         		
         		String catId1 = actionRequest.getParameter("category_id");
                 if (catId1 != null) {
                     prefs.setValue("category_id", catId1);
                     prefs.store();
                 }
-                break;
-        	        	
-        	case "materials":
+        	}
+        	else if (actionName.equals("materials")) {
         		String catId2 = actionRequest.getParameter("category_id");
                 if (catId2 != null) {
                     prefs.setValue("category_id", catId2);
                     prefs.store();
                 }
-                break;
-                
-        	case "goToMaterial" :
+        	}
+        	else if (actionName.equals("goToMaterial")) {
         		Map<String,String[]> params = actionRequest.getParameterMap();
         		for (String key : params.keySet()) {
         			System.out.println(key + ": " + params.get(key));
