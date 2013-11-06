@@ -1,5 +1,8 @@
 package com.test;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.log4j.helpers.FileWatchdog;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -24,6 +28,8 @@ import org.postgresql.PGConnection;
 import org.postgresql.ds.PGConnectionPoolDataSource;
 import org.postgresql.ds.common.PGObjectFactory;
 import org.postgresql.util.PGobject;
+
+import sun.security.krb5.KdcComm;
 
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONSerializer;
@@ -127,7 +133,6 @@ public class DataBaseFunctions {
 			} catch (ParseException e) {
 				jsonObject.put(columnName, a);
 			}
-//			jsonObject.put(columnName, resultSet.getString(columnName));
 			break;
 		case Types.NUMERIC:
 		case Types.DOUBLE:
@@ -804,6 +809,13 @@ public class DataBaseFunctions {
 		input.put("summarize", "false");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
+		try {
+			FileWriter fw = new FileWriter(new File("testJSON.txt"));
+			result.writeJSONString(fw);
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		System.out.println(Helper.niceJsonPrint(result, ""));
 //		result = getOrderSummary(con, input);
 //		System.out.println(result.toJSONString());
@@ -836,10 +848,13 @@ public class DataBaseFunctions {
 	
 	
 	private static void tryNewStuff() {
-
-		for (String a : new String[]{"s","b"}) {
-			System.out.println(a);
-		}
+		JSONObject obj = new JSONObject();
+		obj.put("la", "la");
+		obj.put("la2", 2);
+		Integer a = 2;
+		obj.put("la3", a.toString());
+		System.out.println(obj.toString());
+		System.out.println(obj.toJSONString());
 	}
 	
 	
@@ -847,8 +862,8 @@ public class DataBaseFunctions {
 		Connection con = getWebConnection();
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
-//		testGetOrderSummary(con);
-		tryNewStuff();
+		testGetOrderSummary(con);
+//		tryNewStuff();
 //		 testGetDrugs(con);
 //		testAddDrug(con);
 
