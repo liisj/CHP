@@ -1,14 +1,9 @@
 package com.test;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
 

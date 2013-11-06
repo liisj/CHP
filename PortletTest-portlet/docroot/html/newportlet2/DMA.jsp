@@ -116,7 +116,7 @@ $(document).ready(function(){
 		loadOrders();
 	});
 	$("#clearBtn").click(function(){										//Called when the "Clear" button is pressed
-		////createDialog("confirmation","#dialog-confirm","ui-icon ui-icon-alert","This will clear all you changes. Are you sure?");	
+		createDialog("confirmation","#dialog-confirm","ui-icon ui-icon-alert","This will clear all you changes. Are you sure?");	
 	});
 	
 	$("#backBtn").click(function(){											//Called when the "Back" button is pressed
@@ -154,7 +154,7 @@ $(document).on("click","#IncPack",function(){								//Called when the "Incoming
 
 $(document).on("click","#addToInvSummary",function(){						//Called when the "Add to Inventory" button is pressed
 	
-	if (rcvOrder.drugsInfo.length){
+	if (rcvOrder.drugsInfo.length > 0){
 		mod = 4;		
 		$("#clearBtn").hide();
 		$(this)
@@ -166,8 +166,8 @@ $(document).on("click","#addToInvSummary",function(){						//Called when the "Ad
 			})
 			.attr("id","commitAddToInv");	
 		showNewInvSummary();
-	}//else
-		////createDialog("notification","#notification-message","ui-icon ui-icon-info","Please select one or more drugs to Add to Inventory");	
+	}else
+		createDialog("notification","#notification-message","ui-icon ui-icon-info","Please select one or more drugs to Add to Inventory");	
 });
 
 $(document).on("click","#commitAddToInv",function(){						//Called when the "Commit Changes" button is pressed
@@ -187,8 +187,10 @@ $(document).on("click","#OrdSummary",function(){							//Called when the "Order 
 			})
 			.attr("id","SendOrder");						
 		showOrderSummary();
-	}else console.log("nothing chosen");
-		////createDialog("notification","#notification-message","ui-icon ui-icon-info","Please choose at least one drug to order");	
+	}else {
+		console.log("nothing chosen");
+		createDialog("notification","#notification-message","ui-icon ui-icon-info","Please choose at least one drug to order");
+	}
 });
 
 $(document).on("click","#SendOrder",function(){								//Called when the "Send" button is pressed
@@ -261,12 +263,12 @@ $(document).on("click","#addDrugBtn", function() {
 	var sendData = $.ajax({url: '<%=addNewDrug%>', data: JSONobj});
 	sendData.done(function (msg){
 		console.log("data sent, success");
-		////createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
+		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
 	});
 	sendData.fail(function(error2){
 		console.log("failure");
 		console.log(error2);
-		////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
+		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
 	});	
 	$("#statusgif").hide();
 });
@@ -286,12 +288,12 @@ $(document).on("click","#updateDrugBtn", function() {
 	var sendData = $.ajax({url: '<%=updateDrug%>', data: JSONobj});
 	sendData.done(function (msg){
 		console.log("data sent, success");
-		////createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
+		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
 	});
 	sendData.fail(function(error2){
 		console.log("failure");
 		console.log(error2);
-		////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
+		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
 	});	
 	$("#statusgif").hide();
 });
@@ -300,14 +302,21 @@ $(document).on("click",".newOrdBtn",function(){							//Called when a checkbox f
 	
 	var button = $(this);
 	var drugIndex = parseInt(button.attr("for").substr(button.attr("id").indexOf("_")+1));
-	var JSONobj = {"category": sideEl};
-	var id = $("#check_" + drugIndex + drugIndex).attr("drugid");
-	var orderDrug = new drugObj(id, parseInt($("#amount_" + drugIndex).val()));
-	if (button.attr("aria-pressed")) {
-		newOrder.push(orderDrug);
+	var amount = parseInt($("#amount_" + drugIndex).val());
+	
+	if (isNaN(amount)) {
+		createDialog("notification","#notification-message","ui-icon ui-icon-info","Please insert the amount you would like to order");
 	}
-	else
-		newOrder.splice(getDrugIndex(orderDrug.drugid,newOrder),1);
+	else {
+		var JSONobj = {"category": sideEl};
+		var id = $("#check_" + drugIndex + drugIndex).attr("drugid");
+		var orderDrug = new drugObj(id, amount);
+		if (button.attr("aria-pressed")) {
+			newOrder.push(orderDrug);
+		}
+		else
+			newOrder.splice(getDrugIndex(orderDrug.drugid,newOrder),1);
+	}
 });
 
 $(document).on("click",".IncPackChkbox",function(){							//Called when a checkbox for a drug in "Incoming Package" is marked
@@ -344,12 +353,12 @@ $(document).on("click",".UpdateStock", function() {
 	var sendUpdate = $.ajax({url: '<%=updateStock%>', data: updateInfo});
 	sendUpdate.done(function (msg){
 		console.log("update sent, success");
-		////createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
+		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
 	});
 	sendUpdate.fail(function(error2){
 		console.log("order failure");
 		console.log(error2);
-		////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
+		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
 	});	
 	$("#statusgif").hide();
 });
@@ -471,7 +480,7 @@ function createInputField(labelText, id, type, cell) {
 			dropdown.attr("catIDs", catIDs);
 		});
 		request.fail(function(jqXHR, textStatus) {
-	 		//createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
+	 		createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
 			$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
 		});	
 }
@@ -488,7 +497,7 @@ function createInputField(labelText, id, type, cell) {
 		$("#side_0").click();
 	});
 	request.fail(function(jqXHR, textStatus) {
- 		//createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
+ 		createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
 		$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
 	});
 }
@@ -556,7 +565,7 @@ function loadOrders(status){												//Retrieves from DMA server the orders a
 			drawSideCol("#sidecol",orderInfo,"Orders");
 			$("#side_0").click();
 		}else{
-			//createDialog("notification","#notification-message","ui-icon ui-icon-info","There are no orders to show");	
+			createDialog("notification","#notification-message","ui-icon ui-icon-info","There are no orders to show");	
 			$("#Inventory").click();
 		}
 	});
@@ -934,7 +943,7 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 				putDrVal("#drugForm",data[j].index,data[j].unit_details);
 				putDrVal("#price",data[j].index,data[j].unit_price);
 				putDrVal("#rcvQty",data[j].index,rcvOrder.drugsInfo[data[j].index].amount);
-				putDrVal("#newStock",data[j].index,parseInt(getDrVal("#rcvQty",data[j].index))+parseInt(data[j].current));
+				putDrVal("#newStock",data[j].index,parseInt(getDrVal("#rcvQty",data[j].index))+parseInt(data[j].unit_number));
 				break;
 			}
 		});
@@ -952,13 +961,13 @@ function sendOrder(){														//Sends order information to the DMA server
 	sendNewOrder.done(function (msg){
 		$("#statusgif").hide();
 		console.log("order sent, success");
-		////createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your order has been successfully sent!");
+		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your order has been successfully sent!");
 		newOrder = new Array();
 		$("#newOrder").click();					
 	});
 	sendNewOrder.fail(function(error2){
 		console.log("order failure");
-		////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the order. Please try again");
+		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the order. Please try again");
 		$("#newOrder").click();
 	});
 }
@@ -1002,11 +1011,11 @@ function addToInventory(){													//Updates all inventory values which were
 			$("#statusgif").hide();
 			sendReport();
 			changeOrderStatus("delivered");
-			//createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your changes have been updated and a report has been sent");	
+			createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your changes have been updated and a report has been sent");	
 			$("#Inventory").click();
 		});
 		request.fail(function(error) {
-			//createDialog("notification","#error-message","ui-icon ui-icon-alert","Something went wrong and your changes were not updated. Please try again");
+			createDialog("notification","#error-message","ui-icon ui-icon-alert","Something went wrong and your changes were not updated. Please try again");
 			$("#Inventory").click();
 			console.log("Adding to inventory failed");
 		});
