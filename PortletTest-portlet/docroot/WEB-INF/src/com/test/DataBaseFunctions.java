@@ -67,6 +67,7 @@ public class DataBaseFunctions {
 	static final String UPDATE_DRUG_END = " WHERE id = ?";
 
 	private static PGConnectionPoolDataSource dataSourceWeb = null;
+	private static JSONParser jsonParser = new JSONParser();
 
 	/**
 	 * Transforms the rows, received through the given ResultSet, into
@@ -116,7 +117,7 @@ public class DataBaseFunctions {
 		case Types.CHAR:
 			String a = resultSet.getString(columnName);
 			try {
-				Object jsonO = new JSONParser().parse(a);
+				Object jsonO = jsonParser.parse(a);
 				if (jsonO instanceof JSONObject)
 					jsonObject.put(columnName, (JSONObject) jsonO);
 				else if (jsonO instanceof JSONArray)
@@ -506,8 +507,8 @@ public class DataBaseFunctions {
 					jsonOrder = resultSetRowToJSONObject(rs);
 					currentOrderID = row_order_id;
 				}
-				Object jsonO = new JSONParser().parse(rs.getString("drug"));
-				JSONObject jsonDrug = (JSONObject) new JSONParser().parse(rs.getString("drug"));
+				Object jsonO = jsonParser.parse(rs.getString("drug"));
+				JSONObject jsonDrug = (JSONObject) jsonParser.parse(rs.getString("drug"));
 				drugs.add(jsonDrug);
 				jsonOrder.remove("unit_number");
 				jsonOrder.remove("drug");
@@ -781,6 +782,17 @@ public class DataBaseFunctions {
 		}
 		return false;
 	}
+	
+	
+	
+	
+	/**
+	 * The following section is just for testing single functions.
+	 * 
+	 * 
+	 */
+	
+	
 
 	/**
 	 * This function will print an exemplary Result of the getDrugs Function.
