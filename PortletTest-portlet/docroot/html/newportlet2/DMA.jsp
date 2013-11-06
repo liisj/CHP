@@ -177,7 +177,7 @@ $(document).on("click","#commitAddToInv",function(){						//Called when the "Com
 $(document).on("click","#OrdSummary",function(){							//Called when the "Order Summary" button is pressed
 	if (newOrder.length){
 		mod = 2;
-		$("#clearBtn").hide(); $("#backBtn").show();
+		$("#clearBtn").hide();
 		$(this)
 			.button( {
 				label: "Send",
@@ -206,6 +206,7 @@ $(document).on("click",".AddReduce", function(){							//Called when either the 
 
 $(document).on("click",".sideBtn",function(){								//Called when any of the side bar elements is pressed
 	sideEl = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
+	console.log("mod: " + mod);
 	switch(mod){
 	case 0:
 		var cat_id = $("#side_"+ sideEl).attr("cat_id");
@@ -214,6 +215,17 @@ $(document).on("click",".sideBtn",function(){								//Called when any of the si
 	case 1:
 		var cat_id = $("#side_"+ sideEl).attr("cat_id");
 		showDrugs(cat_id);
+		
+		$("#SendOrder")
+		.show()
+			.button( {
+				label: "Order Summary",
+				icons: {
+					primary: "ui-icon ui-icon-circle-arrow-e"
+				}
+			})
+			.attr("id","OrdSummary");
+		
 		break;
 	case 2:
 		sideEl += 1;
@@ -606,7 +618,7 @@ function showOrderSummary() {												//Displays the user with the order summ
 			for (var j in data) {
 				
 				var drugName = data[j].med_name;
-				if (data[j].common_name != null) {
+				if (data[j].common_name.length != 0) {
 					drugName += ("(" + data[j].common_name + ")"); 
 				}
 				
@@ -619,6 +631,8 @@ function showOrderSummary() {												//Displays the user with the order summ
 			}
 		});
 	}
+	
+	mod = 1;
 }
 
 function putDrVal(id,index,newVal){					//displays the new value entered by the user
@@ -912,8 +926,8 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 		request.done(function(data){
 			for (var j in data){
 				var drugName = data[j].med_name;
-				if (data[j].common_name != null) {
-					drugName += ("(" + data[j].common_name + ")") 
+				if (data[j].common_name.length != 0) {
+					drugName += ("(" + data[j].common_name + ")"); 
 				}
 				$("#drugName_" + data[j].index).text(drugName);
 				putDrVal("#unIssue",data[j].index,data[j].unit);
@@ -932,8 +946,9 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 
 function sendOrder(){														//Sends order information to the DMA server
 	$("#statusgif").show();
-	console.log(newOrder);
-	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: JSON.parse(newOrder)});
+	var JSONobj = {"drugs": JSON.stringify(newOrder)}
+	console.log(JSONobj)
+	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: JSONobj});
 	sendNewOrder.done(function (msg){
 		$("#statusgif").hide();
 		console.log("order sent, success");
@@ -945,7 +960,7 @@ function sendOrder(){														//Sends order information to the DMA server
 		console.log("order failure");
 		////createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the order. Please try again");
 		$("#newOrder").click();
-	});			
+	});
 }
 
 function updateVal(field,index,newVal){										//Updates a single value in database and displays the change to the user

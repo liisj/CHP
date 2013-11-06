@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -318,7 +319,14 @@ public class NewPortlet2 extends MVCPortlet {
 	public void sendOrder(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
+		// This is an example how you can access what I'm sending you
+		JSONObject params = new JSONObject(request.getParameterMap());
+		JSONArray drugs = (JSONArray) JSONValue.parse(((String[]) params.get("drugs"))[0]);
 		
+		for (Object drug : drugs) {
+			System.out.println("drugid: " + ((JSONObject)drug).get("drugid") + 
+					", amount: " + ((JSONObject)drug).get("amount"));
+		}
 	}
 
 	
