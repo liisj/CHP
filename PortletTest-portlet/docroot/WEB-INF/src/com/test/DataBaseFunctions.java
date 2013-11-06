@@ -36,10 +36,10 @@ public class DataBaseFunctions {
 
 	static final String COLUMNS_Order = " " + "o.id AS Order_ID, "
 			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
-			+ "f.id AS facility_id, " + "f.name as facility_name";
+			+ "o.facility_id AS facility_id";
 
-	static final String FROM_Order = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
-			+ "JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
+	static final String FROM_Order = " FROM orders o JOIN drugs d "
+			+ "ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
 
 	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
@@ -185,13 +185,9 @@ public class DataBaseFunctions {
 					.getConnection();
 			con.setAutoCommit(true);
 			PGConnection pgCon = (PGConnection) con;
-			
-//			pgCon.addDataType("drug_ext", Class.forName("com.test.PGDrug"));
 			return con;
 		} catch (SQLException e) {
 			e.printStackTrace();
-//		} catch (ClassNotFoundException e) {
-//			e.printStackTrace();
 		}
 		return null;
 	}
@@ -400,7 +396,6 @@ public class DataBaseFunctions {
 
 		Integer facility_id = Integer.valueOf((String) parameters
 				.get("facility_id"));
-		String facility_name = (String) parameters.get("facility_name");
 
 		StringBuilder whereBuilder = new StringBuilder("");
 
@@ -444,15 +439,11 @@ public class DataBaseFunctions {
 
 		if (facility_id != null)
 			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"f.id = ?");
-
-		if (facility_name != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"f.name LIKE ('%'||?||'%')");
+					"o.facility_id = ?");
 
 		if (summarize)
 			whereBuilder
-					.append(" GROUP BY o.id, o.timestamp, o.status, f.id, f.name");
+					.append(" GROUP BY o.id, o.timestamp, o.status, o.facility_id");
 
 		PreparedStatement pstmt;
 		JSONArray resultArray = null;
@@ -476,8 +467,6 @@ public class DataBaseFunctions {
 			if (facility_id != null)
 				pstmt.setInt(p++, facility_id);
 
-			if (facility_name != null)
-				pstmt.setString(p++, facility_name);
 
 			System.out.println(pstmt.toString());
 
@@ -508,7 +497,7 @@ public class DataBaseFunctions {
 					currentOrderID = row_order_id;
 				}
 				Object jsonO = jsonParser.parse(rs.getString("drug"));
-				JSONObject jsonDrug = (JSONObject) jsonParser.parse(rs.getString("drug"));
+				JSONObject jsonDrug = (JSONObject) jsonO;
 				drugs.add(jsonDrug);
 				jsonOrder.remove("unit_number");
 				jsonOrder.remove("drug");
@@ -657,24 +646,18 @@ public class DataBaseFunctions {
 			pstmt.setInt(p++, Integer.valueOf(category_idS));
 
 			pstmt.setString(p++, med_name);
+			
 
-			if (common_name == null)
-				pstmt.setNull(p++, java.sql.Types.VARCHAR);
-			else
-				pstmt.setString(p++, common_name);
-
-			if (unit == null)
-				pstmt.setNull(p++, java.sql.Types.VARCHAR);
-			else
-				pstmt.setString(p++, unit);
-
-			if (unit_details == null)
-				pstmt.setNull(p++, java.sql.Types.VARCHAR);
-			else
-				pstmt.setString(p++, unit_details);
+			for (String parameter : new String[]{common_name,unit,unit_details}) {
+				if (parameter == null)
+					pstmt.setNull(p++, java.sql.Types.VARCHAR);
+				else
+					pstmt.setString(p++, parameter);
+			}
+			
 
 			pstmt.setDouble(p++, unit_price);
-			System.out.println(pstmt.toString());
+			
 			int result = pstmt.executeUpdate();
 			return result > 0;
 
@@ -818,7 +801,7 @@ public class DataBaseFunctions {
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
-		input.put("summarize", "true");
+		input.put("summarize", "false");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
 		System.out.println(Helper.niceJsonPrint(result, ""));
@@ -853,54 +836,21 @@ public class DataBaseFunctions {
 	
 	
 	private static void tryNewStuff() {
-		try {
-			Connection con = getWebConnection();
-			PreparedStatement pstmt = con.prepareStatement("SELECT o.id AS Order_ID, row_to_json((d.*,c.name,o.unit_number)::drug_ext) AS drug  FROM facilities f JOIN orders o ON f.id = o.facility_id JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id WHERE f.id = '1' ORDER BY o.id ASC");
-			System.out.println(pstmt.toString());
-			ResultSet rs = pstmt.executeQuery();
-			ResultSetMetaData rsmd = rs.getMetaData();
-			
-			while (rs.next()) {
-				int type = rsmd.getColumnType(2);
-				Object bla = rs.getObject(2);
-				PGObjectFactory p = new PGObjectFactory();
-				PGobject str = (PGobject) bla;
-				System.out.println(str.getType());
-				System.out.println(str.getValue());
-				
-				System.out.println(type);
-				int[] a = {Types.JAVA_OBJECT,Types.OTHER,Types.STRUCT,Types.TIME,Types.TIMESTAMP};
-				for (int b : a) {
-					System.out.print(b+ ",");
-				}
-				System.out.println();
-			}
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+		for (String a : new String[]{"s","b"}) {
+			System.out.println(a);
 		}
 	}
+	
 	
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
-		testGetOrderSummary(con);
-//		tryNewStuff();
+//		testGetOrderSummary(con);
+		tryNewStuff();
 //		 testGetDrugs(con);
 //		testAddDrug(con);
-		// input.put("facility_id", "1");
-		// input.put("order_start", "2013-09-21 00:00:00");
-		// input.put("drug_common_name", "Asp");
-		// JSONArray arr = getOrderSummary(con, input);
-		// System.out.println("");
-		// JSONObject one = (JSONObject) arr.get(0);
-		// JSONArray drugs = (JSONArray) one.get("drugs");
-		// JSONObject drug = (JSONObject) drugs.get(0);
-		// System.out.println(drug);
-		// System.out.println(arr);
-		// arr = getCategoryNames(con);
 
 	}
 
