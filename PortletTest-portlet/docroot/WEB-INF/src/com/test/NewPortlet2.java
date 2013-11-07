@@ -3,6 +3,7 @@ package com.test;
 import com.test.DataBaseFunctions;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -315,18 +316,28 @@ public class NewPortlet2 extends MVCPortlet {
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 	}
 	
+
+	/**
+	 * 
+	 * @param request
+	 *            Parameters:<br>
+	 *            facility_id : (int),<br>
+	 *            status : (int),<br>
+	 * <br>
+	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
+	 *            unit_number (int)) will have to be added
+	 */
 	@ProcessAction(name = "sendOrder")
 	public void sendOrder(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+
+		JSONObject parameters = requestToJSONObject(request);
+		boolean result = DataBaseFunctions.addOrder(DataBaseFunctions.getWebConnection(),parameters);
+
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("application/json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
-		// This is an example how you can access what I'm sending you
-		JSONObject params = new JSONObject(request.getParameterMap());
-		JSONArray drugs = (JSONArray) JSONValue.parse(((String[]) params.get("drugs"))[0]);
-		
-		for (Object drug : drugs) {
-			System.out.println("drugid: " + ((JSONObject)drug).get("drugid") + 
-					", amount: " + ((JSONObject)drug).get("amount"));
-		}
 	}
 
 	
