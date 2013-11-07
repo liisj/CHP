@@ -25,6 +25,8 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.postgresql.PGConnection;
+import org.postgresql.PGStatement;
+import org.postgresql.core.types.PGInteger;
 import org.postgresql.ds.PGConnectionPoolDataSource;
 import org.postgresql.ds.common.PGObjectFactory;
 import org.postgresql.util.PGobject;
@@ -40,12 +42,11 @@ public class DataBaseFunctions {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static final String COLUMNS_Order = " " + "o.id AS Order_ID, "
-			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
-			+ "o.facility_id AS facility_id";
+	
+	static PreparedStatement getOrderNonSummarizedStatement = null;
 
-	static final String FROM_Order = " FROM orders o JOIN drugs d "
-			+ "ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
+	static PreparedStatement getOrderSummarizedStatement = null;
+
 
 	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
@@ -190,6 +191,11 @@ public class DataBaseFunctions {
 					.getConnection();
 			con.setAutoCommit(true);
 			PGConnection pgCon = (PGConnection) con;
+			
+			getOrderNonSummarizedStatement = con.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED);
+			getOrderSummarizedStatement = con.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED);
+			
+			
 			return con;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -402,76 +408,42 @@ public class DataBaseFunctions {
 		Integer facility_id = Integer.valueOf((String) parameters
 				.get("facility_id"));
 
-		StringBuilder whereBuilder = new StringBuilder("");
 
 		String summarizeS = (String) parameters.get("summarize");
 		boolean summarize = summarizeS == null ? false : Boolean
 				.valueOf(summarizeS);
 
-		if (summarize)
-			whereBuilder.append("SELECT DISTINCT");
-		else
-			whereBuilder.append("SELECT");
+		
 
-		whereBuilder.append(COLUMNS_Order);
-
-		if (summarize)
-			whereBuilder
-					.append(", sum(d.unit_price*o.unit_number) as total_costs");
-		else
-			whereBuilder
-					.append(", row_to_json((d.*,o.unit_number)::drug_ext)::text AS drug ");
-
-		whereBuilder.append(FROM_Order);
-
-		int c = 0;
-
-		if (order_id != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.id = ?");
-
-		if (order_start != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.timestamp >= ?");
-
-		if (order_end != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.timestamp <= ?");
-
-		if (order_status != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.status = ?");
-
-		if (facility_id != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.facility_id = ?");
-
-		if (summarize)
-			whereBuilder
-					.append(" GROUP BY o.id, o.timestamp, o.status, o.facility_id");
-
-		PreparedStatement pstmt;
+		PreparedStatement pstmt = summarize?getOrderSummarizedStatement:getOrderNonSummarizedStatement;
 		JSONArray resultArray = null;
 		try {
-			pstmt = con.prepareStatement(whereBuilder.toString()
-					+ " ORDER BY o.id ASC");
 			int p = 1;
-
-			if (order_id != null)
-				pstmt.setInt(p++, Integer.valueOf(order_id));
-
+			
 			if (order_start != null)
 				pstmt.setTimestamp(p++, order_start);
+			else
+				pstmt.setTimestamp(p++, new Timestamp(PGStatement.DATE_NEGATIVE_INFINITY));
 
 			if (order_end != null)
 				pstmt.setTimestamp(p++, order_end);
+			else
+				pstmt.setTimestamp(p++, new Timestamp(PGStatement.DATE_POSITIVE_INFINITY));
+
+			if (order_id != null)
+				pstmt.setInt(p++, Integer.valueOf(order_id));
+			else
+				pstmt.setNull(p++, Types.INTEGER);
 
 			if (order_status != null)
 				pstmt.setInt(p++, Integer.valueOf(order_status));
+			else
+				pstmt.setNull(p++, Types.INTEGER);
 
 			if (facility_id != null)
 				pstmt.setInt(p++, facility_id);
-
+			else
+				pstmt.setNull(p++, Types.INTEGER);
 
 			System.out.println(pstmt.toString());
 
@@ -806,7 +778,7 @@ public class DataBaseFunctions {
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
-		input.put("summarize", "false");
+		input.put("summarize", "true");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
 		try {
@@ -848,13 +820,24 @@ public class DataBaseFunctions {
 	
 	
 	private static void tryNewStuff() {
-		JSONObject obj = new JSONObject();
-		obj.put("la", "la");
-		obj.put("la2", 2);
-		Integer a = 2;
-		obj.put("la3", a.toString());
-		System.out.println(obj.toString());
-		System.out.println(obj.toJSONString());
+		Connection con = getWebConnection();
+		try {
+			PreparedStatement pstmt = con.prepareStatement("SELECT * FROM orders o WHERE facility_id = ? ORDER BY o.id");
+			pstmt.setInt(1, 2);
+			ResultSet rs = pstmt.executeQuery();
+			JSONArray arr = resultSetToJSONArray(rs);
+			System.out.println(arr.size());
+			System.out.println(Helper.niceJsonPrint(arr, ""));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	
