@@ -1,5 +1,8 @@
 package com.test;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,12 +18,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.log4j.helpers.FileWatchdog;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.postgresql.PGConnection;
+import org.postgresql.PGStatement;
+import org.postgresql.core.types.PGInteger;
 import org.postgresql.ds.PGConnectionPoolDataSource;
 import org.postgresql.ds.common.PGObjectFactory;
 import org.postgresql.util.PGobject;
@@ -34,12 +40,11 @@ public class DataBaseFunctions {
 	static final String USER = "postgres";
 	static final String PASSWORD = "postgres";
 
-	static final String COLUMNS_Order = " " + "o.id AS Order_ID, "
-			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
-			+ "f.id AS facility_id, " + "f.name as facility_name";
+	
+	static PreparedStatement getOrderNonSummarizedStatement = null;
 
-	static final String FROM_Order = " FROM facilities f JOIN orders o ON f.id = o.facility_id "
-			+ "JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id ";
+	static PreparedStatement getOrderSummarizedStatement = null;
+
 
 	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
@@ -67,6 +72,7 @@ public class DataBaseFunctions {
 	static final String UPDATE_DRUG_END = " WHERE id = ?";
 
 	private static PGConnectionPoolDataSource dataSourceWeb = null;
+	private static JSONParser jsonParser = new JSONParser();
 
 	/**
 	 * Transforms the rows, received through the given ResultSet, into
@@ -116,7 +122,7 @@ public class DataBaseFunctions {
 		case Types.CHAR:
 			String a = resultSet.getString(columnName);
 			try {
-				Object jsonO = new JSONParser().parse(a);
+				Object jsonO = jsonParser.parse(a);
 				if (jsonO instanceof JSONObject)
 					jsonObject.put(columnName, (JSONObject) jsonO);
 				else if (jsonO instanceof JSONArray)
@@ -126,7 +132,6 @@ public class DataBaseFunctions {
 			} catch (ParseException e) {
 				jsonObject.put(columnName, a);
 			}
-//			jsonObject.put(columnName, resultSet.getString(columnName));
 			break;
 		case Types.NUMERIC:
 		case Types.DOUBLE:
@@ -185,12 +190,13 @@ public class DataBaseFunctions {
 			con.setAutoCommit(true);
 			PGConnection pgCon = (PGConnection) con;
 			
-//			pgCon.addDataType("drug_ext", Class.forName("com.test.PGDrug"));
+			getOrderNonSummarizedStatement = con.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED);
+			getOrderSummarizedStatement = con.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED);
+			
+			
 			return con;
 		} catch (SQLException e) {
 			e.printStackTrace();
-//		} catch (ClassNotFoundException e) {
-//			e.printStackTrace();
 		}
 		return null;
 	}
@@ -399,84 +405,43 @@ public class DataBaseFunctions {
 
 		Integer facility_id = Integer.valueOf((String) parameters
 				.get("facility_id"));
-		String facility_name = (String) parameters.get("facility_name");
 
-		StringBuilder whereBuilder = new StringBuilder("");
 
 		String summarizeS = (String) parameters.get("summarize");
 		boolean summarize = summarizeS == null ? false : Boolean
 				.valueOf(summarizeS);
 
-		if (summarize)
-			whereBuilder.append("SELECT DISTINCT");
-		else
-			whereBuilder.append("SELECT");
+		
 
-		whereBuilder.append(COLUMNS_Order);
-
-		if (summarize)
-			whereBuilder
-					.append(", sum(d.unit_price*o.unit_number) as total_costs");
-		else
-			whereBuilder
-					.append(", row_to_json((d.*,o.unit_number)::drug_ext)::text AS drug ");
-
-		whereBuilder.append(FROM_Order);
-
-		int c = 0;
-
-		if (order_id != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.id = ?");
-
-		if (order_start != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.timestamp >= ?");
-
-		if (order_end != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.timestamp <= ?");
-
-		if (order_status != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"o.status = ?");
-
-		if (facility_id != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"f.id = ?");
-
-		if (facility_name != null)
-			whereBuilder.append((c++ > 0 ? " AND " : "WHERE ")).append(
-					"f.name LIKE ('%'||?||'%')");
-
-		if (summarize)
-			whereBuilder
-					.append(" GROUP BY o.id, o.timestamp, o.status, f.id, f.name");
-
-		PreparedStatement pstmt;
+		PreparedStatement pstmt = summarize?getOrderSummarizedStatement:getOrderNonSummarizedStatement;
 		JSONArray resultArray = null;
 		try {
-			pstmt = con.prepareStatement(whereBuilder.toString()
-					+ " ORDER BY o.id ASC");
 			int p = 1;
-
-			if (order_id != null)
-				pstmt.setInt(p++, Integer.valueOf(order_id));
-
+			
 			if (order_start != null)
 				pstmt.setTimestamp(p++, order_start);
+			else
+				pstmt.setTimestamp(p++, new Timestamp(PGStatement.DATE_NEGATIVE_INFINITY));
 
 			if (order_end != null)
 				pstmt.setTimestamp(p++, order_end);
+			else
+				pstmt.setTimestamp(p++, new Timestamp(PGStatement.DATE_POSITIVE_INFINITY));
+
+			if (order_id != null)
+				pstmt.setInt(p++, Integer.valueOf(order_id));
+			else
+				pstmt.setNull(p++, Types.INTEGER);
 
 			if (order_status != null)
 				pstmt.setInt(p++, Integer.valueOf(order_status));
+			else
+				pstmt.setNull(p++, Types.INTEGER);
 
 			if (facility_id != null)
 				pstmt.setInt(p++, facility_id);
-
-			if (facility_name != null)
-				pstmt.setString(p++, facility_name);
+			else
+				pstmt.setNull(p++, Types.INTEGER);
 
 			System.out.println(pstmt.toString());
 
@@ -506,8 +471,8 @@ public class DataBaseFunctions {
 					jsonOrder = resultSetRowToJSONObject(rs);
 					currentOrderID = row_order_id;
 				}
-				Object jsonO = new JSONParser().parse(rs.getString("drug"));
-				JSONObject jsonDrug = (JSONObject) new JSONParser().parse(rs.getString("drug"));
+				Object jsonO = jsonParser.parse(rs.getString("drug"));
+				JSONObject jsonDrug = (JSONObject) jsonO;
 				drugs.add(jsonDrug);
 				jsonOrder.remove("unit_number");
 				jsonOrder.remove("drug");
@@ -656,24 +621,18 @@ public class DataBaseFunctions {
 			pstmt.setInt(p++, Integer.valueOf(category_idS));
 
 			pstmt.setString(p++, med_name);
+			
 
-			if (common_name == null)
-				pstmt.setNull(p++, java.sql.Types.VARCHAR);
-			else
-				pstmt.setString(p++, common_name);
-
-			if (unit == null)
-				pstmt.setNull(p++, java.sql.Types.VARCHAR);
-			else
-				pstmt.setString(p++, unit);
-
-			if (unit_details == null)
-				pstmt.setNull(p++, java.sql.Types.VARCHAR);
-			else
-				pstmt.setString(p++, unit_details);
+			for (String parameter : new String[]{common_name,unit,unit_details}) {
+				if (parameter == null)
+					pstmt.setNull(p++, java.sql.Types.VARCHAR);
+				else
+					pstmt.setString(p++, parameter);
+			}
+			
 
 			pstmt.setDouble(p++, unit_price);
-			System.out.println(pstmt.toString());
+			
 			int result = pstmt.executeUpdate();
 			return result > 0;
 
@@ -781,6 +740,17 @@ public class DataBaseFunctions {
 		}
 		return false;
 	}
+	
+	
+	
+	
+	/**
+	 * The following section is just for testing single functions.
+	 * 
+	 * 
+	 */
+	
+	
 
 	/**
 	 * This function will print an exemplary Result of the getDrugs Function.
@@ -809,6 +779,13 @@ public class DataBaseFunctions {
 		input.put("summarize", "true");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary(con, input);
+		try {
+			FileWriter fw = new FileWriter(new File("testJSON.txt"));
+			result.writeJSONString(fw);
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		System.out.println(Helper.niceJsonPrint(result, ""));
 //		result = getOrderSummary(con, input);
 //		System.out.println(result.toJSONString());
@@ -841,34 +818,26 @@ public class DataBaseFunctions {
 	
 	
 	private static void tryNewStuff() {
+		Connection con = getWebConnection();
 		try {
-			Connection con = getWebConnection();
-			PreparedStatement pstmt = con.prepareStatement("SELECT o.id AS Order_ID, row_to_json((d.*,c.name,o.unit_number)::drug_ext) AS drug  FROM facilities f JOIN orders o ON f.id = o.facility_id JOIN drugs d ON o.drug_id = d.id JOIN categories c ON c.id = d.category_id WHERE f.id = '1' ORDER BY o.id ASC");
-			System.out.println(pstmt.toString());
+			PreparedStatement pstmt = con.prepareStatement("SELECT * FROM orders o WHERE facility_id = ? ORDER BY o.id");
+			pstmt.setInt(1, 2);
 			ResultSet rs = pstmt.executeQuery();
-			ResultSetMetaData rsmd = rs.getMetaData();
-			
-			while (rs.next()) {
-				int type = rsmd.getColumnType(2);
-				Object bla = rs.getObject(2);
-				PGObjectFactory p = new PGObjectFactory();
-				PGobject str = (PGobject) bla;
-				System.out.println(str.getType());
-				System.out.println(str.getValue());
-				
-				System.out.println(type);
-				int[] a = {Types.JAVA_OBJECT,Types.OTHER,Types.STRUCT,Types.TIME,Types.TIMESTAMP};
-				for (int b : a) {
-					System.out.print(b+ ",");
-				}
-				System.out.println();
-			}
-			
+			JSONArray arr = resultSetToJSONArray(rs);
+			System.out.println(arr.size());
+			System.out.println(Helper.niceJsonPrint(arr, ""));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		try {
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 	}
+	
 	
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
@@ -878,17 +847,6 @@ public class DataBaseFunctions {
 //		tryNewStuff();
 //		 testGetDrugs(con);
 //		testAddDrug(con);
-		// input.put("facility_id", "1");
-		// input.put("order_start", "2013-09-21 00:00:00");
-		// input.put("drug_common_name", "Asp");
-		// JSONArray arr = getOrderSummary(con, input);
-		// System.out.println("");
-		// JSONObject one = (JSONObject) arr.get(0);
-		// JSONArray drugs = (JSONArray) one.get("drugs");
-		// JSONObject drug = (JSONObject) drugs.get(0);
-		// System.out.println(drug);
-		// System.out.println(arr);
-		// arr = getCategoryNames(con);
 
 	}
 

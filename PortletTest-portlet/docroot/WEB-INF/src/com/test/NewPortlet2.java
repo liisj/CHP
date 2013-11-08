@@ -3,6 +3,7 @@ package com.test;
 import com.test.DataBaseFunctions;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -72,7 +73,7 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONArray list = DataBaseFunctions.getCategories(DataBaseFunctions.getWebConnection());
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -106,7 +107,7 @@ public class NewPortlet2 extends MVCPortlet {
 		}
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 	
 		
@@ -135,7 +136,7 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -155,7 +156,7 @@ public class NewPortlet2 extends MVCPortlet {
 		
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -174,7 +175,7 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -194,7 +195,7 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -221,7 +222,7 @@ public class NewPortlet2 extends MVCPortlet {
 		boolean result = DataBaseFunctions.updateInventory(DataBaseFunctions.getWebConnection(),parameters);
 
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 		
@@ -248,7 +249,7 @@ public class NewPortlet2 extends MVCPortlet {
 		
 
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 	}
@@ -279,7 +280,7 @@ public class NewPortlet2 extends MVCPortlet {
 		
 
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 	}
@@ -311,22 +312,32 @@ public class NewPortlet2 extends MVCPortlet {
 		
 
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("text/x-json;charset=UTF-8");
+		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 	}
 	
+
+	/**
+	 * 
+	 * @param request
+	 *            Parameters:<br>
+	 *            facility_id : (int),<br>
+	 *            status : (int),<br>
+	 * <br>
+	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
+	 *            unit_number (int)) will have to be added
+	 */
 	@ProcessAction(name = "sendOrder")
 	public void sendOrder(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+
+		JSONObject parameters = requestToJSONObject(request);
+		boolean result = DataBaseFunctions.addOrder(DataBaseFunctions.getWebConnection(),parameters);
+
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("application/json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
-		// This is an example how you can access what I'm sending you
-		JSONObject params = new JSONObject(request.getParameterMap());
-		JSONArray drugs = (JSONArray) JSONValue.parse(((String[]) params.get("drugs"))[0]);
-		
-		for (Object drug : drugs) {
-			System.out.println("drugid: " + ((JSONObject)drug).get("drugid") + 
-					", amount: " + ((JSONObject)drug).get("amount"));
-		}
 	}
 
 	
@@ -366,7 +377,7 @@ public class NewPortlet2 extends MVCPortlet {
         list.add(cat5);
 		
 		 HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-         httpResponse.setContentType("text/x-json;charset=UTF-8");
+         httpResponse.setContentType("application/json;charset=UTF-8");
          ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -400,7 +411,7 @@ public class NewPortlet2 extends MVCPortlet {
         list.add(cat5);
 		
         HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-        httpResponse.setContentType("text/x-json;charset=UTF-8");
+        httpResponse.setContentType("application/json;charset=UTF-8");
         ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -425,7 +436,7 @@ public class NewPortlet2 extends MVCPortlet {
 		list.add(mat3);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-        httpResponse.setContentType("text/x-json;charset=UTF-8");
+        httpResponse.setContentType("application/json;charset=UTF-8");
         ServletResponseUtil.write(httpResponse, list.toJSONString());
 	}
 	
@@ -454,7 +465,7 @@ public class NewPortlet2 extends MVCPortlet {
 				" medical, or substance abuse disorders should focus on the underlying conditions.");
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-        httpResponse.setContentType("text/x-json;charset=UTF-8");
+        httpResponse.setContentType("application/json;charset=UTF-8");
         ServletResponseUtil.write(httpResponse, contentObj.toJSONString());
 	}
 		
