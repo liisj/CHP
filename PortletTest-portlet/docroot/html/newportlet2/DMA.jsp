@@ -329,12 +329,14 @@ $(document).on("click",".IncPackChkbox",function(){							//Called when a checkb
 	request.done(function(data){
 		$("#statusgif").hide();
 		var orderid = data[sideEl-1].orderid;
-		var drugid = data[sideEl-1].drugid;
-		var orderDrug = new drugObj(drugid, parseInt($("#amount_" + drugIndex).val()));
-		if ($("#check_" + drugIndex + drugIndex).attr("aria-pressed"))
-			rcvOrder.drugsInfo.push(orderDrug);
-		else
-			rcvOrder.drugsInfo.splice(getDrugIndex(orderDrug.drugid,rcvOrder.drugsInfo),1);
+		for (var i in data[0].drugs) {
+			var drugid = data[sideEl-1].drugs[i].id;
+			var orderDrug = new drugObj(drugid, parseInt($("#amount_" + drugIndex).val()));
+			if ($("#check_" + drugIndex + drugIndex).attr("aria-pressed"))
+				rcvOrder.drugsInfo.push(orderDrug);
+			else
+				rcvOrder.drugsInfo.splice(getDrugIndex(orderDrug.drugid,rcvOrder.drugsInfo),1);
+		}
 	});		
 });
 
@@ -353,7 +355,8 @@ $(document).on("click",".UpdateStock", function() {
 	var sendUpdate = $.ajax({url: '<%=updateStock%>', data: updateInfo});
 	sendUpdate.done(function (msg){
 		console.log("update sent, success");
-		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
+		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");
+		$("#side_" + sideEl).click();
 	});
 	sendUpdate.fail(function(error2){
 		console.log("order failure");
@@ -603,7 +606,7 @@ function showOrderItems(sideEl, status){											//Displays all of the items c
 			putDrVal("#sentQty",i,data[0].drugs[i].unit_number);
 			$("#amount_" + i).val(data[0].drugs[i].unit_number);
 			if (mod == 3)
-				rcvOrder.orderid = data[sideEl-1].orderid;			
+				rcvOrder.orderid = data[0].order_id;			
 		}
 	});
 	request.fail(function(msg) {
@@ -928,7 +931,7 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 	$("#statusgif").show();
 	
 	putTable("InvSummary",rcvOrder.drugsInfo.length,3);
-	
+	console.log(rcvOrder);
 	for (var i in rcvOrder.drugsInfo){
 		var JSONobj = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i, "facility_id": 1};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
@@ -1004,8 +1007,8 @@ function addToInventory(){													//Updates all inventory values which were
 	$("#statusgif").show();
 	for (var i in rcvOrder.drugsInfo){
 		var JSONobj = {};
-		JSONobj["drugid"] = rcvOrder.drugsInfo[i].drugid;
-		JSONobj["added"] = rcvOrder.drugsInfo[i].amount;
+		JSONobj["facility_id"] = "1";
+		JSONobj[rcvOrder.drugsInfo[i].drugid] = rcvOrder.drugsInfo[i].amount;
 		var request = $.ajax({url: '<%=updateStock%>', data: JSONobj});
 		request.done(function(msg) {
 			$("#statusgif").hide();
