@@ -122,8 +122,10 @@ public class DataBaseFunctions {
 		case Types.CHAR:
 			String a = resultSet.getString(columnName);
 			try {
-				Object jsonO = jsonParser.parse(a);
-				if (jsonO instanceof JSONObject)
+				Object jsonO = a==null?null:jsonParser.parse(a);
+				if (jsonO == null)
+					jsonObject.put(columnName, null);
+				else if (jsonO instanceof JSONObject)
 					jsonObject.put(columnName, (JSONObject) jsonO);
 				else if (jsonO instanceof JSONArray)
 					jsonObject.put(columnName, (JSONArray) jsonO);
@@ -763,6 +765,7 @@ public class DataBaseFunctions {
 		input.put("facility_id", "1");
 		input.put("category_id", "2");
 		JSONArray result = getDrugs(con, input);
+		System.out.println(result);
 		System.out.println(Helper.niceJsonPrint(result, ""));
 	}
 
@@ -843,9 +846,9 @@ public class DataBaseFunctions {
 		Connection con = getWebConnection();
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
-		testGetOrderSummary(con);
+//		testGetOrderSummary(con);
 //		tryNewStuff();
-//		 testGetDrugs(con);
+		 testGetDrugs(con);
 //		testAddDrug(con);
 
 	}
