@@ -3,7 +3,9 @@ package com.test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Array;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -12,27 +14,23 @@ import java.sql.Struct;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.log4j.helpers.FileWatchdog;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.postgresql.PGConnection;
+import org.omg.PortableServer.POA;
 import org.postgresql.PGStatement;
-import org.postgresql.core.types.PGInteger;
 import org.postgresql.ds.PGConnectionPoolDataSource;
-import org.postgresql.ds.common.PGObjectFactory;
-import org.postgresql.util.PGobject;
-
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONSerializer;
+import org.postgresql.ds.PGPoolingDataSource;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.postgresql.jdbc4.Jdbc4Connection;
 
 public class DataBaseFunctions {
 
@@ -72,6 +70,8 @@ public class DataBaseFunctions {
 	static final String UPDATE_DRUG_END = " WHERE id = ?";
 
 	private static PGConnectionPoolDataSource dataSourceWeb = null;
+	private static PGPoolingDataSource pgDataSourceWeb = null;
+	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
 	private static JSONParser jsonParser = new JSONParser();
 
 	/**
@@ -178,19 +178,42 @@ public class DataBaseFunctions {
 	 */
 	public static Connection getWebConnection() {
 		try {
-			if (dataSourceWeb == null) {
-				dataSourceWeb = new PGConnectionPoolDataSource();
-				dataSourceWeb.setUser(USER);
-				dataSourceWeb.setPassword(PASSWORD);
-				dataSourceWeb.setServerName(URL);
-				dataSourceWeb.setPortNumber(5433);
-				dataSourceWeb.setDatabaseName("chpv1_small");
+			if (pgSimpleDataSourceWeb == null) {
+//				dataSourceWeb = new PGConnectionPoolDataSource();
+//				dataSourceWeb.setUser(USER);
+//				dataSourceWeb.setPassword(PASSWORD);
+//				dataSourceWeb.setServerName(URL);
+//				dataSourceWeb.setPortNumber(5433);
+//				dataSourceWeb.setDatabaseName("chpv1_small");
+//				pgDataSourceWeb = new PGPoolingDataSource();
+//				pgDataSourceWeb.setServerName(URL);
+//				pgDataSourceWeb.setPortNumber(5433);
+//				pgDataSourceWeb.setUser(USER);
+//				pgDataSourceWeb.setPassword(PASSWORD);
+//				pgDataSourceWeb.setDatabaseName("chpv1_small");
+//				pgDataSourceWeb.setDataSourceName("webconnectionpool");
+//				pgDataSourceWeb.setInitialConnections(1);
+//				pgDataSourceWeb.setMaxConnections(5);
+				pgSimpleDataSourceWeb = new PGSimpleDataSource();
+				pgSimpleDataSourceWeb.setServerName(URL);
+				pgSimpleDataSourceWeb.setPortNumber(5433);
+				pgSimpleDataSourceWeb.setDatabaseName("chpv1_small");
+				pgSimpleDataSourceWeb.setUser(USER);
+				pgSimpleDataSourceWeb.setPassword(PASSWORD);
+				
+//				Class.forName("org.postgresql.Driver");
+				
 			}
 
-			Connection con = dataSourceWeb.getPooledConnection()
-					.getConnection();
+//			Connection con = dataSourceWeb.getPooledConnection()
+//					.getConnection();
+//			Properties props = new Properties();
+//			props.setProperty("user",USER);
+//			props.setProperty("password",PASSWORD);
+//			Connection con = DriverManager.getConnection("jdbc:postgresql://"+URL+":"+"5433", props);
+			Connection con = pgSimpleDataSourceWeb.getConnection();
 			con.setAutoCommit(true);
-			PGConnection pgCon = (PGConnection) con;
+//			PGConnection pgCon = (PGConnection) con;
 			
 			getOrderNonSummarizedStatement = con.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED);
 			getOrderSummarizedStatement = con.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED);
@@ -351,7 +374,7 @@ public class DataBaseFunctions {
 			p = 1;
 			
 			pstmt.setInt(p++, facility_id);
-
+			
 			if (drug_idS != null) {
 				Integer drug_id = Integer.valueOf(drug_idS);
 				pstmt.setInt(p++, drug_id);
@@ -755,11 +778,13 @@ public class DataBaseFunctions {
 	
 
 	/**
-	 * This function will print an exemplary Result of the getDrugs Function.
+	 * This function will print an exemplary Result of the {@link #getDrugs(Connection, JSONObject)}
+	 * Function.
 	 * 
 	 * @param con
 	 *            Connection to be used
 	 */
+	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testGetDrugs(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
@@ -770,12 +795,13 @@ public class DataBaseFunctions {
 	}
 
 	/**
-	 * This function will print an exemplary Result of the getOrderSummary
+	 * This function will print an exemplary Result of the {@link #getOrderSummary(Connection, JSONObject)}
 	 * Function.
 	 * 
 	 * @param con
 	 *            Connection to be used
 	 */
+	@SuppressWarnings({ "unchecked", "unused" })
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
@@ -794,6 +820,14 @@ public class DataBaseFunctions {
 //		System.out.println(result.toJSONString());
 	}
 
+	/**
+	 * This function will print an exemplary Result of the {@link #addDrug(Connection, JSONObject)}
+	 * Function.
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 */
+	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testAddDrug(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("med_name", "Antimonogamysol");
@@ -809,6 +843,14 @@ public class DataBaseFunctions {
 
 	}
 
+	/**
+	 * This function will print an exemplary Result of the {@link #updateDrug(Connection, JSONObject)}
+	 * Function.
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 */
+	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testUpdateDrug(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("id", "55");
@@ -819,17 +861,51 @@ public class DataBaseFunctions {
 
 	}
 	
+
+	/**
+	 * This function will print an exemplary Result of the {@link #addOrder(Connection, JSONObject)}
+	 * Function.
+	 * 
+	 * @param con
+	 *            Connection to be used
+	 */
+	@SuppressWarnings({ "unused", "unchecked" })
+	private static void testAddOrder(Connection con) {
+		Random rand = new Random();
+		JSONObject input = new JSONObject();
+		input.put("facility_id", "1");
+		input.put("status", "4");
+		input.put(String.valueOf(1+rand.nextInt(50)), String.valueOf(1+rand.nextInt(20)));
+		input.put(String.valueOf(1+rand.nextInt(50)), String.valueOf(1+rand.nextInt(20)));
+		input.put(String.valueOf(1+rand.nextInt(50)), String.valueOf(1+rand.nextInt(20)));
+		
+		
+		boolean result = addOrder(con, input);
+	}
 	
+	private class Bla{
+		int drug_id;
+		int unit_number;
+		public Bla(int d,int u) {
+			drug_id = d;
+			unit_number = u;
+		}
+	}
+	@SuppressWarnings({ "unused" })
 	private static void tryNewStuff() {
 		Connection con = getWebConnection();
 		try {
-			PreparedStatement pstmt = con.prepareStatement("SELECT * FROM orders o WHERE facility_id = ? ORDER BY o.id");
-			pstmt.setInt(1, 2);
+			PreparedStatement pstmt = con.prepareStatement("SELECT (?)::\"order\"");
+//			Jdbc4Connection a = (Jdbc4Connection) con;
+			Struct a = con.createStruct("order", new Integer[]{1,2});
+			pstmt.setObject(1, a);
+			System.out.println(pstmt.toString());
 			ResultSet rs = pstmt.executeQuery();
 			JSONArray arr = resultSetToJSONArray(rs);
 			System.out.println(arr.size());
+			System.out.println(arr);
 			System.out.println(Helper.niceJsonPrint(arr, ""));
-		} catch (SQLException e) {
+		 } catch (SQLException e) {
 			e.printStackTrace();
 		}
 
@@ -841,16 +917,23 @@ public class DataBaseFunctions {
 		
 	}
 	
-	
+
+	@SuppressWarnings({ "unused" })
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
+		testAddOrder(con);
 		// testGetOrderSummary(con);
 //		testUpdateDrug(con);
 //		testGetOrderSummary(con);
 //		tryNewStuff();
-		 testGetDrugs(con);
+//		 testGetDrugs(con);
 //		testAddDrug(con);
-
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
