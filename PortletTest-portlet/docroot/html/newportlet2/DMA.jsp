@@ -250,61 +250,11 @@ $(document).on("click",".EditDrug", function() {
 });
 
 $(document).on("click","#addDrugBtn", function() {
-	var catMenu = document.getElementById("catIn");
-	var catID = catMenu.getAttribute("catIDs").split(",")[catMenu.selectedIndex];
-	var JSONobj = {};
-	JSONobj["med_name"] = $("#drugNameIn").val();
-	JSONobj["common_name"] = $("#commonNameIn").val();
-	JSONobj["category_id"] = catID;
-	JSONobj["unit"] = $("#unIssueIn").val();
-	JSONobj["unit_details"] = $("#drugFormIn").val();
-	JSONobj["unit_price"] = parseInt($("#priceIn").val());
-	JSONobj["msdcode"] = $("#msdCodeIn").val();
-	
-	$("#statusgif").show();
-	var sendData = $.ajax({url: '<%=addNewDrug%>', data: JSONobj});
-	sendData.done(function (msg){
-		console.log("data sent, success");
-		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
-	});
-	sendData.fail(function(error2){
-		console.log("failure");
-		console.log(error2);
-		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
-	});	
-	$("#statusgif").hide();
-	i = 1;
-	while (("#sideBtn_"+i).cat_id != catID) {
-		i += 1;
-	}
-	("#sideBtn_"+i).click();
+	sendDrugUpdate('<%=addNewDrug%>', $(this));
 });
 
 $(document).on("click","#updateDrugBtn", function() {
-	var catMenu = document.getElementById("catIn");
-	var catIDs = catMenu.getAttribute("catIDs").split(",");
-	var JSONobj = {};
-	JSONobj["id"] = $(this).attr("drugid");
-	JSONobj["med_name"] = $("#drugNameIn").val();
-	JSONobj["common_name"] = $("#commonNameIn").val();
-	JSONobj["category_id"] = catIDs[catMenu.selectedIndex];
-	JSONobj["unit"] = $("#unIssueIn").val();
-	JSONobj["unit_details"] = $("#drugFormIn").val();
-	JSONobj["unit_price"] = parseInt($("#priceIn").val());
-	JSONobj["msdcode"] = $("#msdCodeIn").val();
-	
-	$("#statusgif").show();
-	var sendData = $.ajax({url: '<%=updateDrug%>', data: JSONobj});
-	sendData.done(function (msg){
-		console.log("data sent, success");
-		createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
-	});
-	sendData.fail(function(error2){
-		console.log("failure");
-		console.log(error2);
-		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
-	});	
-	$("#statusgif").hide();
+	sendDrugUpdate('<%=updateDrug%>', $(this));
 });
 
 $(document).on("click",".newOrdBtn",function(){							//Called when a checkbox for a drug in "New Order" is marked
@@ -378,6 +328,68 @@ $(document).on("click",".UpdateStock", function() {
 
 /* <--------- Function calls ---------> */
  
+ function sendDrugUpdate(url, button) {
+		var catMenu = document.getElementById("catIn");
+		var catIDs = catMenu.getAttribute("catIDs").split(",");
+		
+		var id = $(this).attr("drugid");
+		var med_name = $("#drugNameIn").val();
+		var common_name = $("#commonNameIn").val();
+		var category_id = catIDs[catMenu.selectedIndex];
+		var unit = $("#unIssueIn").val();
+		var unit_details = $("#drugFormIn").val();
+		var unit_price = $("#priceIn").val();
+		var msdcode = $("#msdCodeIn").val();
+		
+		if (!msdcode) {
+			createDialog("notification","#error-message","ui-icon ui-icon-circle-check", "Please insert MSD code");
+			return;
+		}
+		
+		if (!med_name) {
+			createDialog("notification","#error-message","ui-icon ui-icon-circle-check", "Please insert drug name");
+			return;
+		}
+		
+		if (!unit_price) {
+			createDialog("notification","#error-message", "ui-icon ui-icon-circle-check", "Please insert price");
+			return;
+		}
+		
+		if (!isFloat(unit_price) && unit_price != "") {
+			createDialog("notification","#error-message","ui-icon ui-icon-circle-check","Price has to be a number");
+			return;
+		}
+		
+		if (!isInt(msdcode)) {
+			createDialog("notification","#error-message","ui-icon ui-icon-circle-check","MSD code has to be numerical");
+			return;
+		}
+		
+		var JSONobj = {};
+		JSONobj["id"] = button.attr("drugid");
+		JSONobj["med_name"] = med_name;
+		JSONobj["common_name"] = common_name;
+		JSONobj["category_id"] = category_id;
+		JSONobj["unit"] = unit;
+		JSONobj["unit_details"] = unit_details;
+		JSONobj["unit_price"] = parseInt(unit_price);
+		JSONobj["msdcode"] = parseInt(msdcode);
+		
+		$("#statusgif").show();
+		var sendData = $.ajax({url: '<%=updateDrug%>', data: JSONobj});
+		sendData.done(function (msg){
+			console.log("data sent, success");
+			createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
+		});
+		sendData.fail(function(error2){
+			console.log("failure");
+			console.log(error2);
+			createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
+		});	
+		$("#statusgif").hide();
+		$("#side_0").click();
+}
  function createDrugForm(mode, drugid) {
 	
 	var tbody = $("#inner-content");
@@ -399,7 +411,7 @@ $(document).on("click",".UpdateStock", function() {
 	createInputField("Category: ", "catIn", "category", cell);
 	createInputField("Unit of issue: ", "unIssueIn", "text", cell);
 	createInputField("Drug form: ", "drugFormIn", "text", cell);
-	createInputField("Price: ", "priceIn", "number", cell);
+	createInputField("Price: ", "priceIn", "text", cell);
 	
 	var sendButton = $("<button>");	
 	sendButton.appendTo(cell);
@@ -1303,6 +1315,15 @@ function drawSideCol (tbody,info,type){
 	}
 	$('#sidecol').buttonset();
 }
+
+function isInt(n) {
+	return !isNaN(parseInt(n)) && (parseInt(n) === Number(n));
+}
+
+function isFloat(n) {
+	return !isNaN(parseFloat(n));
+}
+
 </script>
      
 
