@@ -3,7 +3,6 @@ package com.test;
 import com.test.DataBaseFunctions;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -17,8 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.util.PortalUtil;
@@ -92,6 +89,7 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
+	@SuppressWarnings("unchecked")
 	@ProcessAction(name = "getDrugs")
 	public void getDrugs(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
@@ -133,7 +131,7 @@ public class NewPortlet2 extends MVCPortlet {
 			throws PortletException, IOException {
 		
 		JSONObject parameters = requestToJSONObject(request);
-		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
+		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
@@ -145,6 +143,7 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "sent" as order_status to achieve same functionality.
 	 */
+	@SuppressWarnings("unchecked")
 	@Deprecated
 	@ProcessAction(name = "getSentOrderSummary")
 	public void getSentOrderSummary(ActionRequest request, ActionResponse response)
@@ -152,7 +151,7 @@ public class NewPortlet2 extends MVCPortlet {
 
 		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("order_status", "sent");
-		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
+		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
 		
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
@@ -165,6 +164,7 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "order_id" and "summarize = false" as parameters to achieve same functionality.
 	 */
+	@SuppressWarnings("unchecked")
 	@Deprecated
 	@ProcessAction(name = "getOrderItems")
 	public void getOrderItems(ActionRequest request, ActionResponse response)
@@ -172,7 +172,7 @@ public class NewPortlet2 extends MVCPortlet {
 
 		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("summarize", "false");
-		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
+		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
@@ -184,6 +184,7 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "order_status : sent", "order_id" and "summarize : false" as parameters to achieve same functionality.
 	 */
+	@SuppressWarnings("unchecked")
 	@Deprecated
 	@ProcessAction(name = "getSentOrderItems")
 	public void getSentOrderItems(ActionRequest request, ActionResponse response)
@@ -192,7 +193,7 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("order_status", "sent");
 		parameters.put("summarize", "false");
-		JSONArray list = DataBaseFunctions.getOrderSummary(DataBaseFunctions.getWebConnection(),parameters);
+		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
 		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
@@ -332,7 +333,7 @@ public class NewPortlet2 extends MVCPortlet {
 			throws PortletException, IOException {
 
 		JSONObject parameters = requestToJSONObject(request);
-		boolean result = DataBaseFunctions.addOrder(DataBaseFunctions.getWebConnection(),parameters);
+		boolean result = DataBaseFunctions.addOrder2(DataBaseFunctions.getWebConnection(),parameters);
 
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
@@ -350,6 +351,7 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println("searching...");
 	}
 	
+	@SuppressWarnings("unchecked")
 	@ProcessAction(name = "getTopCategories")
 	public void getTopCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
@@ -382,6 +384,7 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@ProcessAction(name = "getSubCategories")
 	public void getSubCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
@@ -416,6 +419,7 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@ProcessAction(name = "getMaterialTitles")
 	public void getMaterialTitles(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
@@ -440,6 +444,7 @@ public class NewPortlet2 extends MVCPortlet {
         ServletResponseUtil.write(httpResponse, list.toJSONString());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@ProcessAction(name = "getMaterialContent")
 	public void getMaterialContent(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
