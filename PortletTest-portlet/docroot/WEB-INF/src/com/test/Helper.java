@@ -38,6 +38,7 @@ public final class Helper {
 			return "null";
 		if (thing instanceof JSONObject) {
 			JSONObject jsonthing = (JSONObject) thing;
+			@SuppressWarnings("rawtypes")
 			Set keys = jsonthing.keySet();
 			String key;
 			String ret = "";
