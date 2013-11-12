@@ -69,7 +69,7 @@ p {padding: 5px 0;}
 	height: 36px;
 	text-indent: -4000px;
 	overflow: hidden;
-	background-image: url(custom-theme/images/137_DMA_blue_NEW.png);
+	background-image: url(images/137_DMA_blue_NEW.png);
 	background-repeat: no-repeat;
 	float: left;
 	width: 135px;
@@ -181,7 +181,7 @@ p {padding: 5px 0;}
 	width: 50px;
 }
 
-.trow{
+.mainrow{
 	width:100%;
 	height: 145px;
 	border-bottom-style: solid;
@@ -203,7 +203,6 @@ p {padding: 5px 0;}
 
 .col2{
 	position: relative;
-	top: 30px;
 }
 
 .col3{

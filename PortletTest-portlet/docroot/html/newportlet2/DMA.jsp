@@ -113,7 +113,7 @@ $(document).ready(function(){
 		$(".optBtn").hide();
 		$("#clearBtn").hide();
 		$("#backBtn").hide();
-		loadOrders();
+		loadOrders('1');
 	});
 	$("#clearBtn").click(function(){										//Called when the "Clear" button is pressed
 		createDialog("confirmation","#dialog-confirm","ui-icon ui-icon-alert","This will clear all you changes. Are you sure?");	
@@ -251,13 +251,15 @@ $(document).on("click",".EditDrug", function() {
 
 $(document).on("click","#addDrugBtn", function() {
 	var catMenu = document.getElementById("catIn");
-	var catIDs = catMenu.getAttribute("catIDs").split(",");
+	var catID = catMenu.getAttribute("catIDs").split(",")[catMenu.selectedIndex];
 	var JSONobj = {};
 	JSONobj["med_name"] = $("#drugNameIn").val();
-	JSONobj["category_id"] = catIDs[catMenu.selectedIndex];
+	JSONobj["common_name"] = $("#commonNameIn").val();
+	JSONobj["category_id"] = catID;
 	JSONobj["unit"] = $("#unIssueIn").val();
 	JSONobj["unit_details"] = $("#drugFormIn").val();
 	JSONobj["unit_price"] = parseInt($("#priceIn").val());
+	JSONobj["msdcode"] = $("#msdCodeIn").val();
 	
 	$("#statusgif").show();
 	var sendData = $.ajax({url: '<%=addNewDrug%>', data: JSONobj});
@@ -271,6 +273,11 @@ $(document).on("click","#addDrugBtn", function() {
 		createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
 	});	
 	$("#statusgif").hide();
+	i = 1;
+	while (("#sideBtn_"+i).cat_id != catID) {
+		i += 1;
+	}
+	("#sideBtn_"+i).click();
 });
 
 $(document).on("click","#updateDrugBtn", function() {
@@ -279,10 +286,12 @@ $(document).on("click","#updateDrugBtn", function() {
 	var JSONobj = {};
 	JSONobj["id"] = $(this).attr("drugid");
 	JSONobj["med_name"] = $("#drugNameIn").val();
+	JSONobj["common_name"] = $("#commonNameIn").val();
 	JSONobj["category_id"] = catIDs[catMenu.selectedIndex];
 	JSONobj["unit"] = $("#unIssueIn").val();
 	JSONobj["unit_details"] = $("#drugFormIn").val();
 	JSONobj["unit_price"] = parseInt($("#priceIn").val());
+	JSONobj["msdcode"] = $("#msdCodeIn").val();
 	
 	$("#statusgif").show();
 	var sendData = $.ajax({url: '<%=updateDrug%>', data: JSONobj});
@@ -386,6 +395,7 @@ $(document).on("click",".UpdateStock", function() {
 	
 	createInputField("Drug name: ", "drugNameIn", "text", cell);
 	createInputField("Common name: ", "commonNameIn", "text", cell);
+	createInputField("MSD code: ", "msdCodeIn", "text", cell);
 	createInputField("Category: ", "catIn", "category", cell);
 	createInputField("Unit of issue: ", "unIssueIn", "text", cell);
 	createInputField("Drug form: ", "drugFormIn", "text", cell);
@@ -661,20 +671,23 @@ function putTable (id, rows, columns){			//creats object tableObj and calls meth
 function drawTextTable(tbody){
 	$(tbody).html("");
 	for (var r = 0; r < this.rows; r++) {
-		var checked = false;
-		var trow = $("<div>");
-			trow.addClass("trow");
-		var cell = $("<div>");
-		cell
-			.addClass("col1")
-			.appendTo(trow);
-		
+		var trowMain = $("<div>");
+		trowMain.addClass("trow")
+			.addClass("mainrow")
+			.appendTo(tbody);
 		var drugName = $("<p>");
 		drugName
 			.attr("id","drugName_" + r)
 			.addClass("Drug_name")
 			.text("[Drug name]")
-			.appendTo(cell);
+			.appendTo(trowMain);
+		var trow = $("<div>");
+			trow.addClass("trow")
+			.appendTo(trowMain);
+		var cell = $("<div>");
+		cell
+			.addClass("col1")
+			.appendTo(trow);
 		
 		var unIssue = $("<p>");
 		unIssue
@@ -923,7 +936,6 @@ function drawTextTable(tbody){
 				.appendTo(cell2);
 			break;	
 		}
-		trow.appendTo(tbody);
 	}
 }
 
@@ -931,7 +943,6 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 	$("#statusgif").show();
 	
 	putTable("InvSummary",rcvOrder.drugsInfo.length,3);
-	console.log(rcvOrder);
 	for (var i in rcvOrder.drugsInfo){
 		var JSONobj = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i, "facility_id": 1};
 		var request = $.getJSON('<%=getDrugs%>', JSONobj);
@@ -958,8 +969,11 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 
 function sendOrder(){														//Sends order information to the DMA server
 	$("#statusgif").show();
-	var JSONobj = {"drugs": JSON.stringify(newOrder)}
-	console.log(JSONobj)
+	var JSONobj = {"facility_id": "1", "status": "2"};
+	console.log("newOrder: ");
+	for (var i in newOrder) {
+		JSONobj[newOrder[i].drugid] = newOrder[i].amount;
+	}
 	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: JSONobj});
 	sendNewOrder.done(function (msg){
 		$("#statusgif").hide();
