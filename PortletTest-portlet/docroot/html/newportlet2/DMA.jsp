@@ -1057,8 +1057,8 @@ function sendReport(){														//Sends a report of the received drugs
 				//createDialog("notification","#error-message","ui-icon ui-icon-alert","The report was not delivered to the DMA server. Contact your administrator");
 			});			
 		});
-	}); */
-}
+	});
+}*/
 
 /* TODO this doesn't actually work, there is no backend to respond to that */
 function changeOrderStatus(newStatus){										//Updates the status of an order
