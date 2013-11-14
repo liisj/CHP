@@ -40,26 +40,55 @@ public class DataBaseFunctions {
 
 	static PreparedStatement addDrugStatement = null;
 
-	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
+	static PreparedStatement getCategoryNamesStatement = null;
 
-	// static final String ADD_ORDER_START =
-	// "WITH meta AS (SELECT ? as fac_id,now() as ts, ? as stat) "
-	// + "INSERT INTO "
-	// + "orders (id,facility_id,drug_id,unit_number,timestamp,status) "
-	// + "VALUES ";
-	// static final String ADD_ORDER_VAL =
-	// "(1+(select max(id) from orders),(SELECT fac_id FROM meta),?,?,(SELECT ts FROM meta),(SELECT stat FROM meta))";
+	static PreparedStatement updateInventoryStatenment = null;
 
-	static final String UPDATE_INVENTORY = "SELECT update_inventory(?,?,?)";
-
-	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = ?"
-			+ " WHERE id = ?";
+	static PreparedStatement updateOrderStatusStatement = null;
 
 	static final String UPDATE_DRUG_START = "UPDATE drugs ";
 	static final String UPDATE_DRUG_END = " WHERE id = ?";
 
 	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
 	private static JSONParser jsonParser = new JSONParser();
+
+	/**
+	 * 
+	 * @return A connection to the database, currently having all rights.
+	 */
+	public static Connection getWebConnection() {
+		try {
+			if (pgSimpleDataSourceWeb == null) {
+				pgSimpleDataSourceWeb = new PGSimpleDataSource();
+				pgSimpleDataSourceWeb.setServerName(URL);
+				pgSimpleDataSourceWeb.setPortNumber(5433);
+				pgSimpleDataSourceWeb.setDatabaseName("chpv1_small");
+				pgSimpleDataSourceWeb.setUser(USER);
+				pgSimpleDataSourceWeb.setPassword(PASSWORD);
+
+			}
+			Connection con = pgSimpleDataSourceWeb.getConnection();
+			con.setAutoCommit(true);
+			getOrderNonSummarizedStatement = con
+					.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
+			getOrderSummarizedStatement = con
+					.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
+			getDrugsStatement = con
+					.prepareStatement(DatabaseStatements.GET_DRUGS);
+			addDrugStatement = con
+					.prepareStatement(DatabaseStatements.ADD_DRUG);
+			getCategoryNamesStatement = con
+					.prepareStatement(DatabaseStatements.GET_CATEGORY_NAMES);
+			updateInventoryStatenment = con
+					.prepareStatement(DatabaseStatements.UPDATE_INVENTORY);
+			updateOrderStatusStatement = con
+					.prepareStatement(DatabaseStatements.UPDATE_ORDER_STATUS);
+			return con;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	/**
 	 * Transforms the rows, received through the given ResultSet, into
@@ -164,67 +193,6 @@ public class DataBaseFunctions {
 
 	/**
 	 * 
-	 * @return A connection to the database, currently having all rights.
-	 */
-	public static Connection getWebConnection() {
-		try {
-			if (pgSimpleDataSourceWeb == null) {
-				// dataSourceWeb = new PGConnectionPoolDataSource();
-				// dataSourceWeb.setUser(USER);
-				// dataSourceWeb.setPassword(PASSWORD);
-				// dataSourceWeb.setServerName(URL);
-				// dataSourceWeb.setPortNumber(5433);
-				// dataSourceWeb.setDatabaseName("chpv1_small");
-				// pgDataSourceWeb = new PGPoolingDataSource();
-				// pgDataSourceWeb.setServerName(URL);
-				// pgDataSourceWeb.setPortNumber(5433);
-				// pgDataSourceWeb.setUser(USER);
-				// pgDataSourceWeb.setPassword(PASSWORD);
-				// pgDataSourceWeb.setDatabaseName("chpv1_small");
-				// pgDataSourceWeb.setDataSourceName("webconnectionpool");
-				// pgDataSourceWeb.setInitialConnections(1);
-				// pgDataSourceWeb.setMaxConnections(5);
-				pgSimpleDataSourceWeb = new PGSimpleDataSource();
-				pgSimpleDataSourceWeb.setServerName(URL);
-				pgSimpleDataSourceWeb.setPortNumber(5433);
-				pgSimpleDataSourceWeb.setDatabaseName("chpv1_small");
-				pgSimpleDataSourceWeb.setUser(USER);
-				pgSimpleDataSourceWeb.setPassword(PASSWORD);
-
-				// Class.forName("org.postgresql.Driver");
-
-			}
-
-			// Connection con = dataSourceWeb.getPooledConnection()
-			// .getConnection();
-			// Properties props = new Properties();
-			// props.setProperty("user",USER);
-			// props.setProperty("password",PASSWORD);
-			// Connection con =
-			// DriverManager.getConnection("jdbc:postgresql://"+URL+":"+"5433",
-			// props);
-			Connection con = pgSimpleDataSourceWeb.getConnection();
-			con.setAutoCommit(true);
-			// PGConnection pgCon = (PGConnection) con;
-
-			getOrderNonSummarizedStatement = con
-					.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
-			getOrderSummarizedStatement = con
-					.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
-			getDrugsStatement = con
-					.prepareStatement(DatabaseStatements.GET_DRUGS);
-			addDrugStatement = con
-					.prepareStatement(DatabaseStatements.ADD_DRUG);
-
-			return con;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	/**
-	 * 
 	 * @param con
 	 *            Connection to be used
 	 * @return JSONArray containing Categories, stored as JSONObjects
@@ -234,7 +202,7 @@ public class DataBaseFunctions {
 		ResultSet resultSet;
 		JSONArray result = null;
 		try {
-			resultSet = con.createStatement().executeQuery(GET_CATEGORY_NAME);
+			resultSet = getCategoryNamesStatement.executeQuery();
 			result = resultSetToJSONArray(resultSet);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -452,130 +420,6 @@ public class DataBaseFunctions {
 
 	}
 
-	// /**
-	// *
-	// * @param con
-	// * Connection to be used
-	// * @param parameters
-	// * JSON Object with the following parameters:<br>
-	// * order_id (int),<br>
-	// * order_start (Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
-	// * order_end (Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
-	// * order_status (one of:
-	// * 1 (initiated),2 (sent),3 (delivered), 4(canceled)<br>
-	// * facility_id (int),<br>
-	// * facility_name (String)
-	// * @return
-	// */
-	// @SuppressWarnings("unchecked")
-	// public static JSONArray getOrderSummary(Connection con,
-	// JSONObject parameters) {
-	// if (parameters == null)
-	// return null;
-	//
-	// String order_id = (String) parameters.get("order_id");
-	//
-	// String order_start_String = (String) parameters.get("order_start");
-	// Timestamp order_start = order_start_String == null ? null
-	// : java.sql.Timestamp.valueOf(order_start_String);
-	// String order_end_String = (String) parameters.get("order_end");
-	// Timestamp order_end = order_end_String == null ? null
-	// : java.sql.Timestamp.valueOf(order_end_String);
-	// String order_status = (String) parameters.get("order_status");
-	//
-	// Integer facility_id = Integer.valueOf((String) parameters
-	// .get("facility_id"));
-	//
-	//
-	// String summarizeS = (String) parameters.get("summarize");
-	// boolean summarize = summarizeS == null ? false : Boolean
-	// .valueOf(summarizeS);
-	//
-	//
-	//
-	// PreparedStatement pstmt =
-	// summarize?getOrderSummarizedStatement:getOrderNonSummarizedStatement;
-	// JSONArray resultArray = null;
-	// try {
-	// int p = 1;
-	//
-	// if (order_start != null)
-	// pstmt.setTimestamp(p++, order_start);
-	// else
-	// pstmt.setTimestamp(p++, new
-	// Timestamp(PGStatement.DATE_NEGATIVE_INFINITY));
-	//
-	// if (order_end != null)
-	// pstmt.setTimestamp(p++, order_end);
-	// else
-	// pstmt.setTimestamp(p++, new
-	// Timestamp(PGStatement.DATE_POSITIVE_INFINITY));
-	//
-	// if (order_id != null)
-	// pstmt.setInt(p++, Integer.valueOf(order_id));
-	// else
-	// pstmt.setNull(p++, Types.INTEGER);
-	//
-	// if (order_status != null)
-	// pstmt.setInt(p++, Integer.valueOf(order_status));
-	// else
-	// pstmt.setNull(p++, Types.INTEGER);
-	//
-	// if (facility_id != null)
-	// pstmt.setInt(p++, facility_id);
-	// else
-	// pstmt.setNull(p++, Types.INTEGER);
-	//
-	// System.out.println(pstmt.toString());
-	//
-	// ResultSet rs = pstmt.executeQuery();
-	//
-	// if (summarize)
-	// return resultSetToJSONArray(rs);
-	//
-	// resultArray = new JSONArray();
-	//
-	// int currentOrderID = -1;
-	//
-	// JSONObject jsonOrder = new JSONObject();
-	// JSONArray drugs = new JSONArray();
-	// boolean found_sth = false;
-	// while (rs.next()) {
-	// found_sth = true;
-	// int row_order_id = rs.getInt("order_id");
-	//
-	// if (currentOrderID != row_order_id) {
-	//
-	// if (currentOrderID != -1) {
-	// jsonOrder.put("drugs", drugs);
-	// resultArray.add(jsonOrder);
-	// drugs = new JSONArray();
-	// }
-	// jsonOrder = resultSetRowToJSONObject(rs);
-	// currentOrderID = row_order_id;
-	// }
-	// Object jsonO = jsonParser.parse(rs.getString("drug"));
-	// JSONObject jsonDrug = (JSONObject) jsonO;
-	// drugs.add(jsonDrug);
-	// jsonOrder.remove("unit_number");
-	// jsonOrder.remove("drug");
-	//
-	// }
-	// if (found_sth) {
-	// jsonOrder.put("drugs", drugs);
-	// resultArray.add(jsonOrder);
-	// }
-	//
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// } catch (ParseException e) {
-	// e.printStackTrace();
-	// }
-	//
-	// System.out.println("orderSummary finishes now. Whatever happens next is not its fault.");
-	// return resultArray;
-	// }
-
 	/**
 	 * 
 	 * @param con
@@ -681,14 +525,12 @@ public class DataBaseFunctions {
 
 		if (order_id == null || status == null)
 			return false;
-
-		PreparedStatement pstmt;
+		
 		try {
-			pstmt = con.prepareStatement(UPDATE_ORDER_STATUS);
-			pstmt.setInt(1, status);
-			pstmt.setInt(2, order_id);
+			updateOrderStatusStatement.setInt(1, status);
+			updateOrderStatusStatement.setInt(2, order_id);
 
-			pstmt.executeUpdate();
+			updateOrderStatusStatement.executeUpdate();
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -724,16 +566,15 @@ public class DataBaseFunctions {
 		Set<Map.Entry<Object, Object>> a = parameters.entrySet();
 
 		try {
-			PreparedStatement pstmt = con.prepareStatement(UPDATE_INVENTORY);
 			for (Iterator<Entry<Object, Object>> iterator = a.iterator(); iterator
 					.hasNext();) {
 				Entry<Object, Object> entry = iterator.next();
 				String key = (String) entry.getKey();
 				if (!key.isEmpty() && key.matches("[0-9]*")) {
-					pstmt.setInt(1, facility_id);
-					pstmt.setInt(2, Integer.valueOf(key));
-					pstmt.setInt(3, Integer.valueOf((String) entry.getValue()));
-					pstmt.executeQuery();
+					updateInventoryStatenment.setInt(1, facility_id);
+					updateInventoryStatenment.setInt(2, Integer.valueOf(key));
+					updateInventoryStatenment.setInt(3, Integer.valueOf((String) entry.getValue()));
+					updateInventoryStatenment.executeQuery();
 				}
 			}
 			return true;
@@ -871,7 +712,7 @@ public class DataBaseFunctions {
 		try {
 			PreparedStatement pstmt = con.prepareStatement(UPDATE_DRUG_START
 					+ middle + UPDATE_DRUG_END);
-			System.out.println(pstmt.toString());
+			
 			int p = 1;
 			if (msdcodeS != null)
 				pstmt.setInt(p++, Integer.valueOf(msdcodeS));
@@ -895,6 +736,8 @@ public class DataBaseFunctions {
 				pstmt.setDouble(p++, Double.valueOf(unit_priceS));
 
 			pstmt.setInt(p++, id);
+			
+			System.out.println(pstmt.toString());
 
 			int result = pstmt.executeUpdate();
 
@@ -1063,12 +906,12 @@ public class DataBaseFunctions {
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
 		// testAddOrder(con);
-		// testUpdateDrug(con);
-		// testGetCategories(con);
-		testGetOrderSummary(con);
+		 testUpdateDrug(con);
+//		testGetCategories(con);
+//		testGetOrderSummary(con);
 		// tryNewStuff();
-		testGetDrugs(con);
-		testAddDrug(con);
+//		testGetDrugs(con);
+		// testAddDrug(con);
 		try {
 			con.close();
 		} catch (SQLException e) {
