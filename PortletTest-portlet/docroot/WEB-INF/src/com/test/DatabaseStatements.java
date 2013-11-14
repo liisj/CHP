@@ -59,4 +59,13 @@ class DatabaseStatements {
 			+ "orders_new (id,facility_id,timestamp,status,order_arr) "
 			+ "VALUES (default,?,now(),?,?)";
 
+	static final String UPDATE_DRUG = "UPDATE drugs " + "SET "
+			+ "msdcode = COALESCE(?,msdcode), "
+			+ "category_id = COALESCE(?,category_id), "
+			+ "med_name = COALESCE(?,med_name), "
+			+ "common_name = COALESCE(?,common_name), "
+			+ "unit = COALESCE(?,unit), "
+			+ "unit_details = COALESCE(?,unit_details), "
+			+ "unit_price = COALESCE(?,unit_price) " + "WHERE id = ?";
+
 }

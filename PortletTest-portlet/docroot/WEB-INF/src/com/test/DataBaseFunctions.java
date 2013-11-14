@@ -46,10 +46,12 @@ public class DataBaseFunctions {
 
 	static PreparedStatement updateOrderStatusStatement = null;
 
-	static final String UPDATE_DRUG_START = "UPDATE drugs ";
-	static final String UPDATE_DRUG_END = " WHERE id = ?";
+	static PreparedStatement updateDrugStatement = null;
+
+	static PreparedStatement addOrderStatement = null;
 
 	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
+
 	private static JSONParser jsonParser = new JSONParser();
 
 	/**
@@ -83,6 +85,10 @@ public class DataBaseFunctions {
 					.prepareStatement(DatabaseStatements.UPDATE_INVENTORY);
 			updateOrderStatusStatement = con
 					.prepareStatement(DatabaseStatements.UPDATE_ORDER_STATUS);
+			updateDrugStatement = con
+					.prepareStatement(DatabaseStatements.UPDATE_DRUG);
+			addOrderStatement = con
+					.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
 			return con;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -202,6 +208,7 @@ public class DataBaseFunctions {
 		ResultSet resultSet;
 		JSONArray result = null;
 		try {
+			System.out.println(getCategoryNamesStatement.toString());
 			resultSet = getCategoryNamesStatement.executeQuery();
 			result = resultSetToJSONArray(resultSet);
 		} catch (SQLException e) {
@@ -209,7 +216,7 @@ public class DataBaseFunctions {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 
 	 * @param con
@@ -263,17 +270,15 @@ public class DataBaseFunctions {
 
 		}
 
-		PreparedStatement pstmt;
 		try {
-			pstmt = con.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
 			int p = 1;
-			pstmt.setInt(p++, facility_id);
-			pstmt.setInt(p++, status);
+			addOrderStatement.setInt(p++, facility_id);
+			addOrderStatement.setInt(p++, status);
 
 			Array a = con.createArrayOf("order", orderBlas.toArray());
-			pstmt.setArray(3, a);
-			System.out.println(pstmt.toString());
-			pstmt.executeUpdate();
+			addOrderStatement.setArray(3, a);
+			System.out.println(addOrderStatement.toString());
+			addOrderStatement.executeUpdate();
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -325,6 +330,7 @@ public class DataBaseFunctions {
 			} else
 				getDrugsStatement.setNull(p++, Types.INTEGER);
 
+			System.out.println(getDrugsStatement.toString());
 			ResultSet rs = getDrugsStatement.executeQuery();
 
 			return resultSetToJSONArray(rs);
@@ -442,7 +448,7 @@ public class DataBaseFunctions {
 
 		if (order_id == null || status == null)
 			return false;
-		
+
 		try {
 			updateOrderStatusStatement.setInt(1, status);
 			updateOrderStatusStatement.setInt(2, order_id);
@@ -490,7 +496,8 @@ public class DataBaseFunctions {
 				if (!key.isEmpty() && key.matches("[0-9]*")) {
 					updateInventoryStatenment.setInt(1, facility_id);
 					updateInventoryStatenment.setInt(2, Integer.valueOf(key));
-					updateInventoryStatenment.setInt(3, Integer.valueOf((String) entry.getValue()));
+					updateInventoryStatenment.setInt(3,
+							Integer.valueOf((String) entry.getValue()));
 					updateInventoryStatenment.executeQuery();
 				}
 			}
@@ -556,6 +563,8 @@ public class DataBaseFunctions {
 
 			addDrugStatement.setDouble(p++, unit_price);
 
+			System.out.println(addDrugStatement.toString());
+
 			int result = addDrugStatement.executeUpdate();
 			return result > 0;
 
@@ -601,68 +610,49 @@ public class DataBaseFunctions {
 		String unit = (String) parameters.get("unit");
 		String unit_details = (String) parameters.get("unit_details");
 		String unit_priceS = String.valueOf(parameters.get("unit_price"));
-		System.out.println(msdcodeS);
-		System.out.println(category_idS);
-		System.out.println(med_name);
-		System.out.println(common_name);
-		System.out.println(unit);
-		System.out.println(unit_details);
-		System.out.println(unit_priceS);
-		String middle = "SET ";
-		int c = 0;
-
-		if (msdcodeS != null)
-			middle += (c++ > 0 ? ", " : " ") + "msdcode = ?";
-
-		if (category_idS != null)
-			middle += (c++ > 0 ? ", " : " ") + "category_id = ?";
-
-		if (med_name != null)
-			middle += (c++ > 0 ? ", " : " ") + "med_name = ?";
-
-		if (common_name != null)
-			middle += (c++ > 0 ? ", " : " ") + "common_name = ?";
-
-		if (unit != null)
-			middle += (c++ > 0 ? ", " : " ") + "unit = ?";
-
-		if (unit_details != null)
-			middle += (c++ > 0 ? ", " : " ") + "unit_details = ?";
-
-		if (unit_priceS != null)
-			middle += (c++ > 0 ? ", " : " ") + "unit_price = ?";
 
 		try {
-			PreparedStatement pstmt = con.prepareStatement(UPDATE_DRUG_START
-					+ middle + UPDATE_DRUG_END);
-			System.out.println(pstmt.toString());
 			int p = 1;
 			if (msdcodeS != null)
-				pstmt.setInt(p++, Integer.valueOf(msdcodeS));
+				updateDrugStatement.setInt(p++, Integer.valueOf(msdcodeS));
+			else
+				updateDrugStatement.setNull(p++, Types.INTEGER);
 
 			if (category_idS != null)
-				pstmt.setInt(p++, Integer.valueOf(category_idS));
+				updateDrugStatement.setInt(p++, Integer.valueOf(category_idS));
+			else
+				updateDrugStatement.setNull(p++, Types.INTEGER);
 
 			if (med_name != null)
-				pstmt.setString(p++, med_name);
+				updateDrugStatement.setString(p++, med_name);
+			else
+				updateDrugStatement.setNull(p++, Types.VARCHAR);
 
 			if (common_name != null)
-				pstmt.setString(p++, common_name);
+				updateDrugStatement.setString(p++, common_name);
+			else
+				updateDrugStatement.setNull(p++, Types.VARCHAR);
 
 			if (unit != null)
-				pstmt.setString(p++, unit);
+				updateDrugStatement.setString(p++, unit);
+			else
+				updateDrugStatement.setNull(p++, Types.VARCHAR);
 
 			if (unit_details != null)
-				pstmt.setString(p++, unit_details);
+				updateDrugStatement.setString(p++, unit_details);
+			else
+				updateDrugStatement.setNull(p++, Types.VARCHAR);
 
 			if (unit_priceS != null)
-				pstmt.setDouble(p++, Double.valueOf(unit_priceS));
+				updateDrugStatement.setDouble(p++, Double.valueOf(unit_priceS));
+			else
+				updateDrugStatement.setNull(p++, Types.DOUBLE);
 
-			pstmt.setInt(p++, id);
-			
-			System.out.println(pstmt.toString());
+			updateDrugStatement.setInt(p++, id);
 
-			int result = pstmt.executeUpdate();
+			System.out.println(updateDrugStatement.toString());
+
+			int result = updateDrugStatement.executeUpdate();
 
 			return result > 0;
 
@@ -835,11 +825,11 @@ public class DataBaseFunctions {
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
 		// testAddOrder(con);
-		 testUpdateDrug(con);
-//		testGetCategories(con);
-//		testGetOrderSummary(con);
+		testUpdateDrug(con);
+		// testGetCategories(con);
+		// testGetOrderSummary(con);
 		// tryNewStuff();
-//		testGetDrugs(con);
+		// testGetDrugs(con);
 		// testAddDrug(con);
 		try {
 			con.close();
