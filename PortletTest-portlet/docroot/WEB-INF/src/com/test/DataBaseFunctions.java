@@ -1055,7 +1055,7 @@ public class DataBaseFunctions {
 //		testUpdateDrug(con);
 		testGetOrderSummary(con);
 		// tryNewStuff();
-		// testGetDrugs(con);
+		 testGetDrugs(con);
 		// testAddDrug(con);
 		try {
 			con.close();

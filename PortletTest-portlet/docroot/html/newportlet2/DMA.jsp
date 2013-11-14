@@ -69,7 +69,7 @@ $(document).ready(function(){
 	
 	$("#Inventory").click(function(){										//Called when "Inventory" tab is selected
 		mod = 0; sideEl = 1;
-		loadDrugCategories();
+		loadDrugCategories();												//Fills the sidepane with drug categories
 		$("#submodules").hide();
 		$("#clearBtn").hide();	
 		$("#backBtn").hide();
@@ -106,14 +106,14 @@ $(document).ready(function(){
 				}
 			})
 			.attr("id","OrdSummary");
-		loadDrugCategories();
+		loadDrugCategories();												//Fills the sidepane with drug categories
 	});
 	$("#viewOrder").click(function(){										//Called when "View Order" tab is selected
 		submod = 1;	mod = 2; sideEl = 1;
 		$(".optBtn").hide();
 		$("#clearBtn").hide();
 		$("#backBtn").hide();
-		loadOrders('1');
+		loadOrders('1');													// Fills the sidepane with orders that have been sent from the hospital
 	});
 	$("#clearBtn").click(function(){										//Called when the "Clear" button is pressed
 		createDialog("confirmation","#dialog-confirm","ui-icon ui-icon-alert","This will clear all you changes. Are you sure?");	
@@ -149,7 +149,7 @@ $(document).on("click","#IncPack",function(){								//Called when the "Incoming
 			}
 		})
 		.attr("id","addToInvSummary");
-	loadOrders("2");
+	loadOrders("2");														// Fills the sidepane with orders that have been received by the hospital
 });
 
 $(document).on("click","#addToInvSummary",function(){						//Called when the "Add to Inventory" button is pressed
@@ -165,7 +165,7 @@ $(document).on("click","#addToInvSummary",function(){						//Called when the "Ad
 				}
 			})
 			.attr("id","commitAddToInv");	
-		showNewInvSummary();
+		showNewInvSummary();												// Shows summary of changes made by user after receiving an order - changes that will be made to the database
 	}else
 		createDialog("notification","#notification-message","ui-icon ui-icon-info","Please select one or more drugs to Add to Inventory");	
 });
@@ -175,7 +175,7 @@ $(document).on("click","#commitAddToInv",function(){						//Called when the "Com
 });
 
 $(document).on("click","#OrdSummary",function(){							//Called when the "Order Summary" button is pressed
-	if (newOrder.length){
+	if (newOrder.length){													//If user has chosen any drugs to order
 		mod = 2;
 		$("#clearBtn").hide();
 		$(this)
@@ -186,7 +186,7 @@ $(document).on("click","#OrdSummary",function(){							//Called when the "Order 
 				}
 			})
 			.attr("id","SendOrder");						
-		showOrderSummary();
+		showOrderSummary();													//Show summary of drugs that will be ordered
 	}else {
 		console.log("nothing chosen");
 		createDialog("notification","#notification-message","ui-icon ui-icon-info","Please choose at least one drug to order");
@@ -197,6 +197,8 @@ $(document).on("click","#SendOrder",function(){								//Called when the "Send" 
 	sendOrder();
 });
 
+// Not used anymore, replaced by UpdateStock button
+/*
 $(document).on("click",".AddReduce", function(){							//Called when either the "+" or "-" sign is pressed on "Inventory"
 	var drugIndex = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
 	var sG = $(this).attr("id").search("l");
@@ -205,16 +207,17 @@ $(document).on("click",".AddReduce", function(){							//Called when either the 
 		updateVal("current",drugIndex,parseInt(curStock) + sG + '');
 	}
 });
+*/
 
 $(document).on("click",".sideBtn",function(){								//Called when any of the side bar elements is pressed
-	sideEl = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
+	sideEl = parseInt($(this).attr("id").substr($(this).attr("id").indexOf("_")+1)); // index of sidepane button, starting from 1
 	console.log("mod: " + mod);
 	switch(mod){
-	case 0:
+	case 0:																	//If in Inventory mode, fills main area with drugs of that category
 		var cat_id = $("#side_"+ sideEl).attr("cat_id");
 		showDrugs(cat_id);
 		break;
-	case 1:
+	case 1:																	//If in New Order mode, fills main area with drugs of selected category and adds SendOrder button
 		var cat_id = $("#side_"+ sideEl).attr("cat_id");
 		showDrugs(cat_id);
 		
@@ -229,83 +232,89 @@ $(document).on("click",".sideBtn",function(){								//Called when any of the si
 			.attr("id","OrdSummary");
 		
 		break;
-	case 2:
+	case 2:																	//If in View Order mode, shows items in that order
 		sideEl += 1;
 		showOrderItems(sideEl);
 		break;
-	case 3:
+	case 3:																	// If in Incoming Package mode, shows items in that order
 		sideEl += 1;
-		rcvOrder = new orderObj();
-		showOrderItems(sideEl, "2");
+		console.log($(this).attr("orderid") + ", " + rcvOrder.orderid);
+		if ($(this).attr("orderid") != rcvOrder.orderid) {					// If switching orders, then clear changes made by user to the previous order. If coming back to the same order from Back button, then changes will not be cleared.
+			rcvOrder = new orderObj();
+		}
+		showOrderItems(sideEl);
 		break;
 	}
 });
 
-$(document).on("click","#sideAddBtn", function() {
+$(document).on("click","#sideAddBtn", function() {							// When the ADD NEW DRUG button is clicked
 	createDrugForm("add");	
 });
 
-$(document).on("click",".EditDrug", function() {
+$(document).on("click",".EditDrug", function() {							// When the "Edit drug info" button is clicked
 	createDrugForm("edit", $(this).attr("drugid"));
 });
 
-$(document).on("click","#addDrugBtn", function() {
+$(document).on("click","#addDrugBtn", function() {							// When the "Add to database" button is clicked in the new drug adding form
 	sendDrugUpdate('<%=addNewDrug%>', $(this));
 });
 
-$(document).on("click","#updateDrugBtn", function() {
+$(document).on("click","#updateDrugBtn", function() {						// When the "Update info in database" button is clicked in the drug editing form
 	sendDrugUpdate('<%=updateDrug%>', $(this));
 });
 
 $(document).on("click",".newOrdBtn",function(){							//Called when a checkbox for a drug in "New Order" is marked
 	
 	var button = $(this);
-	var drugIndex = parseInt(button.attr("for").substr(button.attr("id").indexOf("_")+1));
-	var amount = parseInt($("#amount_" + drugIndex).val());
+	var drugIndex = parseInt(button.attr("for").substr(button.attr("id").indexOf("_")+1));	//Index of the checked drug in the list
+	var amount = parseInt($("#amount_" + drugIndex).val());									//Amount of drugs ordered by user (Request Qty)
 	
-	if (isNaN(amount)) {
+	if (isNaN(amount)) {												// No amount specified when "order" button is clicked, gives error message
 		createDialog("notification","#notification-message","ui-icon ui-icon-info","Please insert the amount you would like to order");
+		$("#amount_" + drugIndex).val(0);
+		amount = 0;
 	}
-	else {
-		var JSONobj = {"category": sideEl};
-		var id = $("#check_" + drugIndex + drugIndex).attr("drugid");
-		var orderDrug = new drugObj(id, amount);
-		if (button.attr("aria-pressed")) {
-			newOrder.push(orderDrug);
+
+	var id = $("#check_" + drugIndex + drugIndex).attr("drugid");	// id of drug in database
+	var orderDrug = new drugObj(id, amount);
+	
+	if (button.attr("added-to-list") == "true") {					//If button was deactivated, remove from list
+		console.log("removing");
+		newOrder.splice(getDrugIndex(id,newOrder),1);
+		button.attr("added-to-list", false);
 		}
-		else
-			newOrder.splice(getDrugIndex(orderDrug.drugid,newOrder),1);
+	else {
+		console.log("adding");										//If button was activated, add to list of drugs to order
+		newOrder.push(orderDrug);
+		button.attr("added-to-list", true);
 	}
 });
 
 $(document).on("click",".IncPackChkbox",function(){							//Called when a checkbox for a drug in "Incoming Package" is marked
+
 	var checkbox = $(this);
-	var drugIndex = parseInt(checkbox.attr("id").substr(checkbox.attr("id").indexOf("_")+1));
-	$("#statusgif").show();
+	var drugIndex = parseInt(checkbox.attr("id").substr(checkbox.attr("id").indexOf("_")+1)); // Index of drug in drugs list	
+	var orderDrug = new drugObj(checkbox.attr("drugid"), parseInt($("#amount_" + drugIndex).val()));
 	
-	var params = {"order_status": "2", "facility_id" : "1", "summarize": "false"};
-	var request = $.getJSON('<%=getOrderSummary%>', params);	
-	request.done(function(data){
-		$("#statusgif").hide();
-		var orderid = data[sideEl-1].orderid;
-		for (var i in data[0].drugs) {
-			var drugid = data[sideEl-1].drugs[i].id;
-			var orderDrug = new drugObj(drugid, parseInt($("#amount_" + drugIndex).val()));
-			if ($("#check_" + drugIndex + drugIndex).attr("aria-pressed"))
-				rcvOrder.drugsInfo.push(orderDrug);
-			else
-				rcvOrder.drugsInfo.splice(getDrugIndex(orderDrug.drugid,rcvOrder.drugsInfo),1);
+if (checkbox.attr("added-to-list") == "true") {						//If button was deactivated, remove from list						
+		console.log("removing");
+		rcvOrder.drugsInfo.splice(getDrugIndex(orderDrug.drugid,rcvOrder.drugsInfo),1);
+		checkbox.attr("added-to-list", false);
 		}
-	});		
+	else {															//If button was activated, add to list of drugs to order
+		console.log("adding");
+		rcvOrder.drugsInfo.push(orderDrug);
+		checkbox.attr("added-to-list", true);
+	}
 });
 
-$(document).on("click",".UpdateStock", function() {
+$(document).on("click",".UpdateStock", function() {					// Clicking "Update stock"
 	
 	$("#statusgif").show();
 	
-	var drugIndex = ($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));
-	var add = parseInt($("#add_" + drugIndex).val());
-	var reduce = parseInt($("#reduce_" + drugIndex).val());
+	var drugIndex = ($(this).attr("id").substr($(this).attr("id").indexOf("_")+1));	// Index of drug in drugs list
+	var add = parseInt($("#add_" + drugIndex).val());								// Added amount
+	var reduce = parseInt($("#reduce_" + drugIndex).val());							// Removed amount
 	var diff = ( isNaN(add) ? 0 : add) - (isNaN(reduce) ? 0 : reduce);
 	var updateInfo = {};
 	updateInfo[$(this).attr("drugid")] = diff;
@@ -325,10 +334,19 @@ $(document).on("click",".UpdateStock", function() {
 	$("#statusgif").hide();
 });
 
+$(document).on("change",".reqInput",function(){					// Request Qty in New Order is changed
+	
+	var drugid = $(this).attr("drugid");
+	var drugIndex = getDrugIndex(drugid, newOrder);				
+	if (drugIndex >= 0) {										// If is already set to be ordered, update amount in order
+		newOrder[drugIndex].amount = $(this).val();
+	}
+});
+
 
 /* <--------- Function calls ---------> */
  
- function sendDrugUpdate(url, button) {
+ function sendDrugUpdate(url, button) {							// Send update to database, if new drug is added or existing drug edited
 		var catMenu = document.getElementById("catIn");
 		var catIDs = catMenu.getAttribute("catIDs").split(",");
 		
@@ -340,7 +358,7 @@ $(document).on("click",".UpdateStock", function() {
 		var unit_details = $("#drugFormIn").val();
 		var unit_price = $("#priceIn").val();
 		var msdcode = $("#msdCodeIn").val();
-		
+																// Validation
 		if (!msdcode) {
 			createDialog("notification","#error-message","ui-icon ui-icon-circle-check", "Please insert MSD code");
 			return;
@@ -365,19 +383,19 @@ $(document).on("click",".UpdateStock", function() {
 			createDialog("notification","#error-message","ui-icon ui-icon-circle-check","MSD code has to be numerical");
 			return;
 		}
-		
-		var JSONobj = {};
-		JSONobj["id"] = button.attr("drugid");
-		JSONobj["med_name"] = med_name;
-		JSONobj["common_name"] = common_name;
-		JSONobj["category_id"] = category_id;
-		JSONobj["unit"] = unit;
-		JSONobj["unit_details"] = unit_details;
-		JSONobj["unit_price"] = parseInt(unit_price);
-		JSONobj["msdcode"] = parseInt(msdcode);
+															// Parameters for DB request
+		var parameters = {};
+		parameters["id"] = button.attr("drugid");
+		parameters["med_name"] = med_name;
+		parameters["common_name"] = common_name;
+		parameters["category_id"] = category_id;
+		parameters["unit"] = unit;
+		parameters["unit_details"] = unit_details;
+		parameters["unit_price"] = parseInt(unit_price);
+		parameters["msdcode"] = parseInt(msdcode);
 		
 		$("#statusgif").show();
-		var sendData = $.ajax({url: '<%=updateDrug%>', data: JSONobj});
+		var sendData = $.ajax({url: url, data: parameters});
 		sendData.done(function (msg){
 			console.log("data sent, success");
 			createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
@@ -390,7 +408,8 @@ $(document).on("click",".UpdateStock", function() {
 		$("#statusgif").hide();
 		$("#side_0").click();
 }
- function createDrugForm(mode, drugid) {
+
+function createDrugForm(mode, drugid) {								// Creates a form for adding or editing drugs
 	
 	var tbody = $("#inner-content");
 	tbody.html("");
@@ -415,7 +434,6 @@ $(document).on("click",".UpdateStock", function() {
 	
 	var sendButton = $("<button>");	
 	sendButton.appendTo(cell);
-	
 
 	if (mode == "add") {
 		title.text("Add new drug");
@@ -431,10 +449,10 @@ $(document).on("click",".UpdateStock", function() {
 			.attr("drugid", drugid)
 			.text("Update info in database");
 		
-		var JSONobj = {"drug_id": drugid, "facility_id": 1};
-		var request = $.getJSON('<%=getDrugs%>', JSONobj);
+		var parameters = {"drug_id": drugid, "facility_id": 1};
+		var request = $.getJSON('<%=getDrugs%>', parameters);			// Fetch info of the drug being edited from DB
 		request.done(function(data) {
-			console.log(data);
+			
 			$("#drugNameIn").val(data[0].med_name);
 			$("#commonNameIn").val(data[0].common_name);
 			
@@ -453,7 +471,7 @@ $(document).on("click",".UpdateStock", function() {
 	}
 };
 
-function createInputField(labelText, id, type, cell) {
+function createInputField(labelText, id, type, cell) {			// Creates an input field for drug adding/editing form
 	var row = $("<tr>");
 	var left = $("<td>");
 	var right = $("<td>");
@@ -481,7 +499,7 @@ function createInputField(labelText, id, type, cell) {
 	row.appendTo(cell);
 }
  
- function addCategoryDropdown(cell, id) {
+ function addCategoryDropdown(cell, id) {					// Creates a dropdown menu in drug adding/editing form for categories
 	 
 	var url = '<%=getDrugCategories%>';
 		$("#statusgif").show();
@@ -495,7 +513,7 @@ function createInputField(labelText, id, type, cell) {
 				.appendTo(cell);
 			
 			catIDs = "";
-			for (var i in data) {
+			for (var i in data) {							// Add categories to dropdown menu
 				var categoryOpt = $("<option>");
 				categoryOpt
 					.text(data[i].category_name)
@@ -510,16 +528,15 @@ function createInputField(labelText, id, type, cell) {
 		});	
 }
  
- function loadDrugCategories () {											//Retrieves from DMA server the category names and displays them in side bar
+ function loadDrugCategories () {							//Retrieves from DMA server the category names and displays them in side bar
 	
+	$("#statusgif").show();	
 	var url = '<%=getDrugCategories%>';
-	$("#statusgif").show();
-	
 	var request = jQuery.getJSON(url);
 	request.done(function(data){
 		$("#statusgif").hide();
 		drawSideCol("#sidecol",data,"drugCategories");
-		$("#side_0").click();
+		$("#side_0").click();								// Select first retrieved category
 	});
 	request.fail(function(jqXHR, textStatus) {
  		createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
@@ -527,12 +544,12 @@ function createInputField(labelText, id, type, cell) {
 	});
 }
 
-function showDrugs(category){ 														//Retrieves drug information from DB and displays it to the user
+function showDrugs(category){ 								//Retrieves drug information from DB and displays it to the user
 	
 	$("#statusgif").show();
 	var url = '<%=getDrugs%>';
 	
-	var catJSON = {};
+	var catJSON = {};										// Parameters for request
 	
 	if (category != null) {
 		catJSON["category_id"] = category;
@@ -541,36 +558,39 @@ function showDrugs(category){ 														//Retrieves drug information from DB
 	var request = $.getJSON(url, catJSON);	
 	request.done(function(data){
 		$("#statusgif").hide();
-		putTable("drugs_table",data.length,3);
+		putTable("drugs_table",data.length,3);				// Create table in main section and add retrieved data to it
 		for (var i in data){
-			
 			var drugName = data[i].med_name;
 			if (data[i].common_name.length != 0) {
 				drugName += (" (" + data[i].common_name + ")"); 
 			}
 			
 			$("#drugName_" + i).text(drugName);
-			$("#update_" + i).attr("drugid",data[i].id);
+			$("#update_" + i).attr("drugid",data[i].id);		//Add ID of drug to certain action buttons/fields
 			$("#edit_" + i).attr("drugid",data[i].id);
 			$("#check_" + i + i).attr("drugid",data[i].id);
+			$("#amount_" + i).attr("drugid",data[i].id);
 			putDrVal("#unIssue",i,data[i].unit);
 			putDrVal("#drugForm",i,data[i].unit_details);
 			putDrVal("#stock",i,data[i].unit_number);
 			putDrVal("#price",i,data[i].unit_price);
 						
-			var drugIndex = getDrugIndex(data[i].id,newOrder);
+			var drugIndex = getDrugIndex(data[i].id,newOrder);	// If opening page from Back button, select drugs that have been added to order list, so that user wouldn't have to perform all actions again
 			if (drugIndex >= 0){
-				$("#check_" + i + i).attr("aria-pressed",true); $("#check_" + i + i).addClass("ui-state-active"); $("#check_" + i).attr("checked",true);
-				$("#amount_" + i).attr("value",newOrder[drugIndex].amount);
+				$("#check_" + i + i).attr("aria-pressed",true); 
+				$("#check_" + i + i).addClass("ui-state-active"); 
+				$("#check_" + i).attr("checked",true); 
+				$("#check_" + i + i).attr("added-to-list",true);
+				$("#amount_" + i).val(newOrder[drugIndex].amount);
 			}
-			else
+			else												// If drug is not in order list, add suggested order amount as request qty
 				$("#amount_" + i).attr("value",data[i].suggested);
 		}
-		$(".col3").buttonset();		
+		$(".col3").buttonset();									// Make buttons look pretty with jquery-ui		
 	});
 }
 
-function loadOrders(status){												//Retrieves from DMA server the orders and displays them in side bar
+function loadOrders(status){								//Retrieves from DMA server the orders and displays them in side bar
 	
 	$("#statusgif").show();
 	
@@ -586,9 +606,17 @@ function loadOrders(status){												//Retrieves from DMA server the orders a
 			for (var i in data)
 				orderInfo[i] = new ordSummaryObj(data[i].order_id,data[i].order_timestamp,
 						data[i].drugs.length,data[i].order_status);
+				if (rcvOrder.orderid == data[i].order_id) {	// Save index if this is the order the user is currently working on
+					rcvOrder.orderindex = i;
+				}
 			$("#statusgif").hide();
-			drawSideCol("#sidecol",orderInfo,"Orders");
-			$("#side_0").click();
+			drawSideCol("#sidecol",orderInfo,"Orders");		// Create side pane with queried order items
+			if (rcvOrder.orderindex >= 0) {					// If opening this view from Back button in Incoming package mode, then go back to the order which was selected
+				$("#side_" + rcvOrder.orderindex).click();	
+			}
+			else {
+				$("#side_0").click();						// If opening this view fresh, open first order
+			}
 		}else{
 			createDialog("notification","#notification-message","ui-icon ui-icon-info","There are no orders to show");	
 			$("#Inventory").click();
@@ -600,35 +628,40 @@ function loadOrders(status){												//Retrieves from DMA server the orders a
 	})
 }
 
-function showOrderItems(sideEl, status){											//Displays all of the items contained in the selected order
+function showOrderItems(sideEl){							//Displays all of the items contained in the selected order
 	
 	$("#statusgif").show();
 	
-	var JSONobj = {};
-	JSONobj["order_id"] = $("#side_" + parseInt(sideEl-1)).attr("orderid");
-	JSONobj["summarize"] = "false";
-	JSONobj["facility_id"] = "1";
-	if (status != null) {
-		JSONobj["order_status"] = status;
-	}
+	var parameters = {};										
+	parameters["order_id"] = $("#side_" + parseInt(sideEl-1)).attr("orderid");
+	parameters["summarize"] = "false";
+	parameters["facility_id"] = "1";
 	
-	var request = $.getJSON('<%=getOrderSummary%>', JSONobj);
+	var request = $.getJSON('<%=getOrderSummary%>', parameters);
 	request.done(function(data){
 		$("#statusgif").hide();
-		putTable("order",data.length,3);
+		putTable("order",data[0].drugs.length,3);			// Create table structure for order items
 		console.log(data[0]);
-		for (var i in data[0].drugs){
+		for (var i in data[0].drugs){						// Add data from request to table
 			console.log("unit number: " + data[0].drugs[i].unit_number);
 			$("#drugName_" + i).text(data[0].drugs[i].med_name);
 			putDrVal("#unIssue",i,data[0].drugs[i].unit);
 			putDrVal("#drugForm",i,data[0].drugs[i].unit_details);
 			putDrVal("#price",i,data[0].drugs[i].unit_price);
 			putDrVal("#reqLbl",i,data[0].drugs[i].unit_number);
-			// TODO
 			putDrVal("#sentQty",i,data[0].drugs[i].unit_number);
 			$("#amount_" + i).val(data[0].drugs[i].unit_number);
-			if (mod == 3)
-				rcvOrder.orderid = data[0].order_id;			
+			$("#check_" + i).attr("drugid", data[0].drugs[i].id);
+			if (mod == 3) {									// Incoming package
+				rcvOrder.orderid = data[0].order_id;		// Mark ID of order that the user is working with
+				var rcvIndex = getDrugIndex(data[0].drugs[i].id,rcvOrder.drugsInfo);	
+				if (rcvIndex >= 0) {						// If a drug was already marked to be added to inventory by user, make the mark again
+					$("#amount_" + i).val(rcvOrder.drugsInfo[rcvIndex].amount);
+					rcvOrder.drugsInfo.splice(rcvIndex,1);	// First remove from list
+					$("#check_" +i).click();				// And then click button again, which will automatically add the drug to list again
+				}
+			}
+				
 		}
 	});
 	request.fail(function(msg) {
@@ -637,25 +670,21 @@ function showOrderItems(sideEl, status){											//Displays all of the items c
 	});
 }
 
-function showOrderSummary() {												//Displays the user with the order summary
+function showOrderSummary() {								//Displays the user with the order summary
 	$("#statusgif").show();
-	
-	var url = '<%=getDrugs%>';
-	putTable("order",newOrder.length,3);
+	putTable("order",newOrder.length,3);					// Create table structure
 	
 	for (var i in newOrder) {
-	
-		var JSONobj = {"drug_id": newOrder[i].drugid, "index": i, "facility_id": 1};
-		var request = $.getJSON(url, JSONobj);
+															// Request information about drugs in the order
+		var parameters = {"drug_id": newOrder[i].drugid, "index": i, "facility_id": 1};
+		var request = $.getJSON('<%=getDrugs%>', parameters);
 		request.done(function(data){
 			$("#statusgif").hide();
 			for (var j in data) {
-				
-				var drugName = data[j].med_name;
+				var drugName = data[j].med_name;			// Fill table with fetched information
 				if (data[j].common_name.length != 0) {
 					drugName += ("(" + data[j].common_name + ")"); 
 				}
-				
 				$("#drugName_" + data[j].index).text(drugName);
 				putDrVal("#unIssue",data[j].index,data[j].unit);
 				putDrVal("#drugForm",data[j].index,data[j].unit_details);
@@ -665,7 +694,6 @@ function showOrderSummary() {												//Displays the user with the order summ
 			}
 		});
 	}
-	
 	mod = 1;
 }
 
@@ -811,30 +839,6 @@ function drawTextTable(tbody){
 			.addClass("EditDrug")
 			.text("Edit drug info");
 
-/*		var plusButton = $("<button>");
-		plusButton
-			.attr("id", "plus_" + r)
-			.addClass("AddReduce")
-			.button( {
-					icons: {
-						primary: "ui-icon-plusthick"
-					},
-					text: false
-			})
-
-		var minusButton = $("<button>");
-		minusButton
-			.attr("id", "minus_" + r)
-			.addClass("AddReduce")
-			.button( {
-					icons: {
-						primary: "ui-icon-minusthick"
-					},
-					text: false
-			}) */
-			
-		
-		
 		switch(mod){
 		case 0: //Inventory
 			currentStock.appendTo(cell2);
@@ -846,9 +850,6 @@ function drawTextTable(tbody){
 			editBtn.appendTo(editDiv);
 			updateDiv.appendTo(cell3);
 			editDiv.appendTo(cell3);
-			/*plusButton.appendTo(cell3);
-			$("<br />").appendTo(cell3);
-			minusButton.appendTo(cell3);*/	
 			break;
 		case 1: //New Order
 			stockLeft.appendTo(cell2);
@@ -889,13 +890,13 @@ function drawTextTable(tbody){
 				});
 
 			break;
-		case 2:
+		case 2: // View order
 			$("<p>").text("Requested Qty: []")
 			.attr("id","reqLbl_" + r)
 			.addClass("reqQlabel")
 			.appendTo(cell2);
 			break;	
-		case 3:
+		case 3: // Incoming package
 			$("<p>").text("Sent Qty: []")
 				.addClass("SentQLbl")
 				.attr("id","sentQty_" + r)
@@ -935,7 +936,7 @@ function drawTextTable(tbody){
 				});
 
 			break;
-		case 4:			
+		case 4:	//Add to inventory		
 			$("<p>").text("Received Qty: []")
 				.addClass("RcvQLbl")
 				.attr("id","rcvQty_" + r)
@@ -954,12 +955,12 @@ function drawTextTable(tbody){
 function showNewInvSummary(){												//Displays a summary of the drugs that will be added to Inventory
 	$("#statusgif").show();
 	
-	putTable("InvSummary",rcvOrder.drugsInfo.length,3);
-	for (var i in rcvOrder.drugsInfo){
-		var JSONobj = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i, "facility_id": 1};
-		var request = $.getJSON('<%=getDrugs%>', JSONobj);
+	putTable("InvSummary",rcvOrder.drugsInfo.length,3);						// Create table structure
+	for (var i in rcvOrder.drugsInfo){										// Fetch info about each drug
+		var parameters = {"drug_id": rcvOrder.drugsInfo[i].drugid, "index": i, "facility_id": 1};
+		var request = $.getJSON('<%=getDrugs%>', parameters);
 		request.done(function(data){
-			for (var j in data){
+			for (var j in data){											// Add fetched info to table
 				var drugName = data[j].med_name;
 				if (data[j].common_name.length != 0) {
 					drugName += ("(" + data[j].common_name + ")"); 
@@ -979,14 +980,13 @@ function showNewInvSummary(){												//Displays a summary of the drugs that 
 
 
 
-function sendOrder(){														//Sends order information to the DMA server
+function sendOrder(){														//Sends new order information to the DMA server
 	$("#statusgif").show();
-	var JSONobj = {"facility_id": "1", "status": "2"};
-	console.log("newOrder: ");
+	var parameters = {"facility_id": "1", "status": "1"};
 	for (var i in newOrder) {
-		JSONobj[newOrder[i].drugid] = newOrder[i].amount;
+		parameters[newOrder[i].drugid] = newOrder[i].amount;				// For each id amount of the drug ordered
 	}
-	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: JSONobj});
+	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: parameters});
 	sendNewOrder.done(function (msg){
 		$("#statusgif").hide();
 		console.log("order sent, success");
@@ -1001,41 +1001,13 @@ function sendOrder(){														//Sends order information to the DMA server
 	});
 }
 
-function updateVal(field,index,newVal){										//Updates a single value in database and displays the change to the user
-	var dbViewUri = "_design/" + clientDoc + "/_view/by_cat";
-	$("#statusgif").show();
-	
-	/* TODO
-	var request = $.getJSON(dbUrl + "/" + dbName + "/" + dbViewUri,encodeURI("key=\"" + sideEl + "\""));	
-	request.done(function(data){
-		var drugJson = data.rows[index].value;
-		switch(field){
-		case "current":
-		  drugJson.current = newVal;
-		  break;		 
-		}
-		var drugJsonText = JSON.stringify(drugJson);
-		var requestUpd = $.ajax({
-			url: dbUrl + "/" + dbName + "/" + drugJson._id,
-			type: "PUT",
-			processData: false,
-			data: drugJsonText,
-			contentType: "application/json"
-		});
-		requestUpd.done(function (msg){
-			$("#statusgif").hide();
-			putDrVal("#stock",index,newVal);
-		});
-	}); */
-}
-
 function addToInventory(){													//Updates all inventory values which were changed at the "Incoming package" screen
 	$("#statusgif").show();
 	for (var i in rcvOrder.drugsInfo){
-		var JSONobj = {};
-		JSONobj["facility_id"] = "1";
-		JSONobj[rcvOrder.drugsInfo[i].drugid] = rcvOrder.drugsInfo[i].amount;
-		var request = $.ajax({url: '<%=updateStock%>', data: JSONobj});
+		var parameters = {};
+		parameters["facility_id"] = "1";
+		parameters[rcvOrder.drugsInfo[i].drugid] = rcvOrder.drugsInfo[i].amount;
+		var request = $.ajax({url: '<%=updateStock%>', data: parameters});
 		request.done(function(msg) {
 			$("#statusgif").hide();
 			sendReport();
@@ -1051,9 +1023,9 @@ function addToInventory(){													//Updates all inventory values which were
 	}
 }
 
+/* TODO I think this should be replaced by just general logging somehow 
 function sendReport(){														//Sends a report of the received drugs
 	var dbViewUri = "_design/" + clientDoc + "/_view/orders";
-	/* TODO
 	var getOrders = $.getJSON(dbUrl + "/" + dbName + "/" + dbViewUri);	
 	getOrders.done(function(data){
 		var orders = data.rows;
@@ -1088,10 +1060,11 @@ function sendReport(){														//Sends a report of the received drugs
 	}); */
 }
 
+/* TODO this doesn't actually work, there is no backend to respond to that */
 function changeOrderStatus(newStatus){										//Updates the status of an order
 	
-	var JSONobj = {"id": rcvOrder.orderid, "newStatus": newStatus};
-	var changeStatus = $.ajax('<%=updateOrder%>', JSONobj);
+	var parameters = {"id": rcvOrder.orderid, "newStatus": newStatus};
+	var changeStatus = $.ajax('<%=updateOrder%>', parameters);
 	changeStatus.done(function(msg) {
 		console.log("changeStatus done");
 	});
@@ -1099,29 +1072,6 @@ function changeOrderStatus(newStatus){										//Updates the status of an order
 		alert("Fail CoS:(\n" + msg);
 	});
 } 
-
-function getOrderItems(Drugs){
-	var orderItems = "\"items\":[";
-	var drug = new orderItemObj();
-	for (var i in newOrder){
-		for (var j in Drugs){
-			if (Drugs[j].id == newOrder[i].drugid){
-				drug.drugid = toJsonField("_id", Drugs[j].id);
-				drug.name = toJsonField("drugname", Drugs[j].value.drugname);
-				drug.msdcode = toJsonField("msdcode", Drugs[j].value.msdcode);
-				drug.unitofissue = toJsonField("unitofissue", Drugs[j].value.unitofissue);
-				drug.drugform = toJsonField("drugform", Drugs[j].value.drugform);
-				drug.price = toJsonField("price", Drugs[j].value.price);
-				drug.amount = toJsonField("amount", newOrder[i].amount);
-				if (i == newOrder.length - 1)
-					orderItems = orderItems.concat(drug.mergeFields());
-				else
-					orderItems = orderItems.concat(drug.mergeFields(),",");
-			};
-		};
-	}
-	return orderItems.concat("]");
-}
 
 function getDrVal(id,index){						//returns the value stored in HTML and which corresponds to the user's value
 	var field = $(id + "_" + index);
@@ -1159,10 +1109,6 @@ function mergeDrugFields() {						//merges the fields into a Json-compliant form
 	return "{" + this.drugid + "," + this.name + "," + this.msdcode + "," + this.unitofissue + "," + this.drugform + "," + this.price + "," + this.amount + "}"; 
 }
 
-function toJsonField (key,value){
-	return "\"" + key + "\"" + ":" + "\"" + value + "\"";
-}
-
 function getDateFormat(){
 	var d = new Date();
 	var date = d.getDate();
@@ -1179,25 +1125,10 @@ function drugObj (drugid, amount) {
 	this.amount = amount;
 }
 
-function orderObj (orderid) {
+function orderObj (orderid, orderindex) {
 	this.orderid = orderid;
+	this.orderindex = orderindex;
 	this.drugsInfo = new Array();
-}
-
-function order (_id,author,created_at,facility,items,order_id,status,type){
-	this._id = _id;
-	this.author = author;
-	this.created_at = created_at;
-	this.facility = facility;
-	this.items = items;				//already in string format
-	this.order_id = order_id;
-	this.status = status;
-	this.type = type;
-	this.mergeFields = mergeOrderFields;
-}
-
-function mergeOrderFields(){
-	return "{" + this._id + "," + this.author + "," + this.created_at + "," + this.facility + "," + this.items + "," + this.order_id + "," + this.status + "," + this.type + "}"; 
 }
 
 function ordSummaryObj(orderid,date,items,status){
@@ -1247,11 +1178,15 @@ function createDialog(type,dialog_id,icon,message){
 						switch (mod){
 							case 1:															//The user is placed in "New Order"
 								newOrder = new Array();
-								$(".newOrdBtn").attr("aria-pressed",false); $(".newOrdBtn").removeClass("ui-state-active"); $(".newOrdChkbox").attr("checked",false);
+								$(".newOrdBtn").attr("aria-pressed",false); 
+								$(".newOrdBtn").removeClass("ui-state-active"); 
+								$(".newOrdChkbox").attr("checked",false);
 								break;
 							case 3:															//The user is placed on "Incoming Package"
 								rcvOrder = new orderObj();
-								$(".incOrdBtn").attr("aria-pressed",false); $(".incOrdBtn").removeClass("ui-state-active"); $(".IncPackChkbox").attr("checked",false);
+								$(".incOrdBtn").attr("aria-pressed",false); 
+								$(".incOrdBtn").removeClass("ui-state-active"); 
+								$(".IncPackChkbox").attr("checked",false);
 								break;
 						}
 						$( this ).dialog( "close" );
