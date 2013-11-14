@@ -2,15 +2,10 @@ package database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayDeque;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class DataBaseFunctions {

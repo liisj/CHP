@@ -78,7 +78,7 @@ public class NewPortlet2 extends MVCPortlet {
 	/**
 	 * 
 	 * @param request
-	 * 				Possible parameters:<br>
+	 * 				Parameters:<br>
 	 *              Mandatory:<br>
 	 *            	facility_id : (int)<br>
 	 *            	Optional:<br>
