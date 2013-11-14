@@ -350,7 +350,8 @@ $(document).on("change",".reqInput",function(){					// Request Qty in New Order 
 		var catMenu = document.getElementById("catIn");
 		var catIDs = catMenu.getAttribute("catIDs").split(",");
 		
-		var id = $(this).attr("drugid");
+		var id = button.attr("drugid");
+		console.log("id: " + id);
 		var med_name = $("#drugNameIn").val();
 		var common_name = $("#commonNameIn").val();
 		var category_id = catIDs[catMenu.selectedIndex];
@@ -385,7 +386,7 @@ $(document).on("change",".reqInput",function(){					// Request Qty in New Order 
 		}
 															// Parameters for DB request
 		var parameters = {};
-		parameters["id"] = button.attr("drugid");
+		parameters["id"] = id;
 		parameters["med_name"] = med_name;
 		parameters["common_name"] = common_name;
 		parameters["category_id"] = category_id;
@@ -394,19 +395,22 @@ $(document).on("change",".reqInput",function(){					// Request Qty in New Order 
 		parameters["unit_price"] = parseInt(unit_price);
 		parameters["msdcode"] = parseInt(msdcode);
 		
+		console.log(parameters);
+		
 		$("#statusgif").show();
 		var sendData = $.ajax({url: url, data: parameters});
 		sendData.done(function (msg){
 			console.log("data sent, success");
-			createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");		
+			createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your update has been successfully sent!");
+			$("#side_0").click();
 		});
 		sendData.fail(function(error2){
 			console.log("failure");
 			console.log(error2);
 			createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again");
+			$("#side_0").click();
 		});	
 		$("#statusgif").hide();
-		$("#side_0").click();
 }
 
 function createDrugForm(mode, drugid) {								// Creates a form for adding or editing drugs
@@ -467,6 +471,7 @@ function createDrugForm(mode, drugid) {								// Creates a form for adding or e
 			$("#unIssueIn").val(data[0].unit_details);
 			$("#drugFormIn").val(data[0].unit);
 			$("#priceIn").val(data[0].unit_price);
+			$("#msdCodeIn").val(data[0].msdcode);
 		});
 	}
 };
