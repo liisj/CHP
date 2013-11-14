@@ -19,6 +19,8 @@ class DatabaseStatements {
 			+ "AND o.facility_id = COALESCE(?,o.facility_id) "
 			+ "GROUP BY o.facility_id,o.id,o.timestamp,o.status "
 			+ "ORDER BY o.id ASC";
+	
+	
 	static final String GET_ORDER_NON_SUMMARIZED2 = "SELECT "
 			+ "o.id AS Order_ID, "
 			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
@@ -37,37 +39,21 @@ class DatabaseStatements {
 			+ "AND o.facility_id = COALESCE(?,o.facility_id) "
 			+ "GROUP BY o.facility_id,o.id,o.timestamp,o.status "
 			+ "ORDER BY o.id ASC";
-//	static final String GET_ORDER_NON_SUMMARIZED = "SELECT "
-//			+ "o.id AS Order_ID, "
-//			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
-//			+ "o.facility_id AS facility_id, "
-//			+ "row_to_json((d.*,o.unit_number)::drug_ext)::text AS drug "
-//			+ "FROM orders o JOIN drugs d "
-//			+ "ON o.drug_id = d.id "
-//			+ "JOIN categories c "
-//			+ "ON c.id = d.category_id "
-//			+ "WHERE o.timestamp BETWEEN ? AND ? "
-//			+ "AND o.id = COALESCE(?,o.id) "
-//			+ "AND o.status = COALESCE(?,o.status) "
-//			+ "AND o.facility_id = COALESCE(?,o.facility_id) "
-//			+ "ORDER BY o.id ASC";
-//	
-//
-//	static final String GET_ORDER_SUMMARIZED = "SELECT DISTINCT "
-//			+ "o.id AS Order_ID, "
-//			+ "o.timestamp AS order_timestamp, " + "o.status AS order_status, "
-//			+ "o.facility_id AS facility_id, "
-//			+ "sum(d.unit_price*o.unit_number) as total_costs "
-//			+ "FROM orders o JOIN drugs d "
-//			+ "ON o.drug_id = d.id "
-//			+ "JOIN categories c "
-//			+ "ON c.id = d.category_id "
-//			+ "WHERE o.timestamp BETWEEN ? AND ? "
-//			+ "AND o.id = COALESCE(?,o.id) "
-//			+ "AND o.status = COALESCE(?,o.status) "
-//			+ "AND o.facility_id = COALESCE(?,o.facility_id) "
-//			+ "GROUP BY o.id, o.timestamp, o.status, o.facility_id "
-//			+ "ORDER BY o.id ASC";
+	
+
+	static final String GET_DRUGS = "SELECT d.*,COALESCE(i.unit_number,0) as unit_number "
+			+ "FROM drugs d "
+			+ "LEFT OUTER JOIN (SELECT * FROM inventories WHERE facility_id = ?) i "
+			+ "ON (d.id = i.drug_id) "
+			+ "WHERE d.id = COALESCE(?,d.id) "
+			+ "AND d.category_id = COALESCE(?,d.category_id) "
+			+ "ORDER BY d.med_name ASC";
+	
+
+	static final String ADD_DRUG = "INSERT INTO drugs(id, msdcode, "
+			+ "category_id, med_name, common_name, unit, unit_details, unit_price) "
+			+ "VALUES (default, ?, ?, ?, ?, ?, ?, ?)";
+	
 	
 	static final String ADD_ORDER_NEW = "INSERT INTO "
 					+ "orders_new (id,facility_id,timestamp,status,order_arr) "

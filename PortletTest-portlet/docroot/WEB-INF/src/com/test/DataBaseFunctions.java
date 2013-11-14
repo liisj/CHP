@@ -23,10 +23,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.postgresql.PGStatement;
-import org.postgresql.ds.PGConnectionPoolDataSource;
-import org.postgresql.ds.PGPoolingDataSource;
 import org.postgresql.ds.PGSimpleDataSource;
-import org.postgresql.util.PGobject;
+import com.test.DatabaseStatements;
 
 public class DataBaseFunctions {
 
@@ -38,27 +36,24 @@ public class DataBaseFunctions {
 
 	static PreparedStatement getOrderSummarizedStatement = null;
 
+	static PreparedStatement getDrugsStatement = null;
+
+	static PreparedStatement addDrugStatement = null;
+
 	static final String GET_CATEGORY_NAME = "SELECT c.id AS category_id,c.name AS category_name FROM categories c";
 
-	static final String ADD_ORDER_START = "WITH meta AS (SELECT ? as fac_id,now() as ts, ? as stat) "
-			+ "INSERT INTO "
-			+ "orders (id,facility_id,drug_id,unit_number,timestamp,status) "
-			+ "VALUES ";
-	static final String ADD_ORDER_VAL = "(1+(select max(id) from orders),(SELECT fac_id FROM meta),?,?,(SELECT ts FROM meta),(SELECT stat FROM meta))";
+	// static final String ADD_ORDER_START =
+	// "WITH meta AS (SELECT ? as fac_id,now() as ts, ? as stat) "
+	// + "INSERT INTO "
+	// + "orders (id,facility_id,drug_id,unit_number,timestamp,status) "
+	// + "VALUES ";
+	// static final String ADD_ORDER_VAL =
+	// "(1+(select max(id) from orders),(SELECT fac_id FROM meta),?,?,(SELECT ts FROM meta),(SELECT stat FROM meta))";
 
 	static final String UPDATE_INVENTORY = "SELECT update_inventory(?,?,?)";
 
 	static final String UPDATE_ORDER_STATUS = "UPDATE orders SET status = ?"
 			+ " WHERE id = ?";
-
-	static final String GET_DRUGS = "SELECT d.*,COALESCE(i.unit_number,0) as unit_number "
-			+ "FROM drugs d "
-			+ "LEFT OUTER JOIN (SELECT * FROM inventories WHERE facility_id = ?) i "
-			+ "ON (d.id = i.drug_id)  ";
-
-	static final String ADD_DRUG = "INSERT INTO drugs(id, msdcode, "
-			+ "category_id, med_name, common_name, unit, unit_details, unit_price) "
-			+ "VALUES (default, ?, ?, ?, ?, ?, ?, ?)";
 
 	static final String UPDATE_DRUG_START = "UPDATE drugs ";
 	static final String UPDATE_DRUG_END = " WHERE id = ?";
@@ -216,6 +211,10 @@ public class DataBaseFunctions {
 					.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
 			getOrderSummarizedStatement = con
 					.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
+			getDrugsStatement = con
+					.prepareStatement(DatabaseStatements.GET_DRUGS);
+			addDrugStatement = con
+					.prepareStatement(DatabaseStatements.ADD_DRUG);
 
 			return con;
 		} catch (SQLException e) {
@@ -361,10 +360,6 @@ public class DataBaseFunctions {
 		Integer facility_id = Integer.valueOf(facility_idS);
 		Integer status = Integer.valueOf(order_statusS);
 
-		StringBuilder sb = new StringBuilder();
-		sb.append(DatabaseStatements.ADD_ORDER_NEW);
-
-		int c = 1;
 		ArrayDeque<String> orderBlas = new ArrayDeque<String>();
 		for (Object keyO : keySet) {
 			String key = keyO.toString();
@@ -372,9 +367,6 @@ public class DataBaseFunctions {
 
 			if (!key.isEmpty() && key.matches("[0-9]*") && !val.isEmpty()
 					&& val.matches("[0-9]*")) {
-				if (c > 1)
-					sb.append(",");
-				sb.append(ADD_ORDER_VAL);
 				Integer drug_id = Integer.valueOf(key);
 				Integer number = Integer.valueOf(val);
 				if (number <= 0)
@@ -382,7 +374,6 @@ public class DataBaseFunctions {
 				orderBlas.add("(" + drug_id + "," + number + ")");
 				System.out.println("Parameters fround: " + drug_id + "|"
 						+ number);
-				c++;
 			}
 
 		}
@@ -430,41 +421,26 @@ public class DataBaseFunctions {
 		if (facility_idS == null)
 			return null;
 
-		int p = 0;
-		String where = "";
-		if (drug_idS != null) {
-			where += p == 0 ? " WHERE " : " AND ";
-			where += "id = ?";
-			p++;
-		}
-
-		if (category_idS != null) {
-			where += p == 0 ? " WHERE " : " AND ";
-			where += "category_id = ?";
-		}
-
-		PreparedStatement pstmt;
 		try {
-			pstmt = con.prepareStatement(GET_DRUGS + where
-					+ " ORDER BY med_name ASC");
-			System.out.println(pstmt.toString());
 			Integer facility_id = Integer.valueOf(facility_idS);
 
-			p = 1;
+			int p = 1;
 
-			pstmt.setInt(p++, facility_id);
+			getDrugsStatement.setInt(p++, facility_id);
 
-			if (drug_idS != null) {
+			if (drug_idS != null && drug_idS.matches("[0-9]*")) {
 				Integer drug_id = Integer.valueOf(drug_idS);
-				pstmt.setInt(p++, drug_id);
-			}
+				getDrugsStatement.setInt(p++, drug_id);
+			} else
+				getDrugsStatement.setNull(p++, Types.INTEGER);
 
-			if (category_idS != null) {
+			if (category_idS != null && category_idS.matches("[0-9]*")) {
 				Integer category_id = Integer.valueOf(category_idS);
-				pstmt.setInt(p++, category_id);
-			}
+				getDrugsStatement.setInt(p++, category_id);
+			} else
+				getDrugsStatement.setNull(p++, Types.INTEGER);
 
-			ResultSet rs = pstmt.executeQuery();
+			ResultSet rs = getDrugsStatement.executeQuery();
 
 			return resultSetToJSONArray(rs);
 
@@ -803,28 +779,26 @@ public class DataBaseFunctions {
 
 		Double unit_price = Double.valueOf(unit_priceS);
 
-		PreparedStatement pstmt;
 		try {
-			pstmt = con.prepareStatement(ADD_DRUG);
 			int p = 1;
 
-			pstmt.setInt(p++, Integer.valueOf(msdcodeS));
+			addDrugStatement.setInt(p++, Integer.valueOf(msdcodeS));
 
-			pstmt.setInt(p++, Integer.valueOf(category_idS));
+			addDrugStatement.setInt(p++, Integer.valueOf(category_idS));
 
-			pstmt.setString(p++, med_name);
+			addDrugStatement.setString(p++, med_name);
 
 			for (String parameter : new String[] { common_name, unit,
 					unit_details }) {
 				if (parameter == null)
-					pstmt.setNull(p++, java.sql.Types.VARCHAR);
+					addDrugStatement.setNull(p++, java.sql.Types.VARCHAR);
 				else
-					pstmt.setString(p++, parameter);
+					addDrugStatement.setString(p++, parameter);
 			}
 
-			pstmt.setDouble(p++, unit_price);
+			addDrugStatement.setDouble(p++, unit_price);
 
-			int result = pstmt.executeUpdate();
+			int result = addDrugStatement.executeUpdate();
 			return result > 0;
 
 		} catch (SQLException e) {
@@ -949,7 +923,7 @@ public class DataBaseFunctions {
 	private static void testGetDrugs(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
-		input.put("category_id", "2");
+		input.put("drug_id", "4");
 		JSONArray result = getDrugs(con, input);
 		System.out.println(result);
 		System.out.println(Helper.niceJsonPrint(result, ""));
@@ -966,7 +940,7 @@ public class DataBaseFunctions {
 	private static void testGetOrderSummary(Connection con) {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
-		input.put("summarize", "false");
+		input.put("summarize", "true");
 		// input.put("order_start", "2013-09-21 00:00:00");
 		JSONArray result = getOrderSummary2(con, input);
 		try {
@@ -1032,14 +1006,51 @@ public class DataBaseFunctions {
 	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testAddOrder(Connection con) {
 		Random rand = new Random();
-		JSONObject input = new JSONObject();
-		input.put("facility_id", "1");
-		input.put("status", "4");
-		for (int i = 0 ; i < 1+rand.nextInt(5) ; i++)
-			input.put(String.valueOf(1 + rand.nextInt(50)),
-				String.valueOf(1 + rand.nextInt(20)));
+		for (int a = 0; a < 40; a++) {
+			JSONObject input = new JSONObject();
+			input.put("facility_id", String.valueOf(rand.nextInt(3) + 1));
+			input.put("status", "3");
+			for (int i = 0; i < 1 + rand.nextInt(5); i++)
+				input.put(String.valueOf(1 + rand.nextInt(50)),
+						String.valueOf(1 + rand.nextInt(20)));
 
-		boolean result = addOrder2(con, input);
+			boolean result = addOrder2(con, input);
+		}
+		for (int a = 0; a < 15; a++) {
+			JSONObject input = new JSONObject();
+			input.put("facility_id", String.valueOf(rand.nextInt(3) + 1));
+			input.put("status", "2");
+			for (int i = 0; i < 1 + rand.nextInt(5); i++)
+				input.put(String.valueOf(1 + rand.nextInt(50)),
+						String.valueOf(1 + rand.nextInt(20)));
+
+			boolean result = addOrder2(con, input);
+		}
+		for (int a = 0; a < 10; a++) {
+			JSONObject input = new JSONObject();
+			input.put("facility_id", String.valueOf(rand.nextInt(3) + 1));
+			input.put("status", "1");
+			for (int i = 0; i < 1 + rand.nextInt(5); i++)
+				input.put(String.valueOf(1 + rand.nextInt(50)),
+						String.valueOf(1 + rand.nextInt(20)));
+
+			boolean result = addOrder2(con, input);
+		}
+		for (int a = 0; a < 8; a++) {
+			JSONObject input = new JSONObject();
+			input.put("facility_id", String.valueOf(rand.nextInt(3) + 1));
+			input.put("status", "4");
+			for (int i = 0; i < 1 + rand.nextInt(5); i++)
+				input.put(String.valueOf(1 + rand.nextInt(50)),
+						String.valueOf(1 + rand.nextInt(20)));
+
+			boolean result = addOrder2(con, input);
+		}
+	}
+
+	private static void testGetCategories(Connection con) {
+		JSONArray arr = getCategories(con);
+		System.out.println(Helper.niceJsonPrint(arr, ""));
 	}
 
 	@SuppressWarnings({ "unused" })
@@ -1051,12 +1062,13 @@ public class DataBaseFunctions {
 	@SuppressWarnings({})
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
-//		testAddOrder(con);
-//		testUpdateDrug(con);
+		// testAddOrder(con);
+		// testUpdateDrug(con);
+		// testGetCategories(con);
 		testGetOrderSummary(con);
 		// tryNewStuff();
-		 testGetDrugs(con);
-		// testAddDrug(con);
+		testGetDrugs(con);
+		testAddDrug(con);
 		try {
 			con.close();
 		} catch (SQLException e) {
