@@ -209,90 +209,7 @@ public class DataBaseFunctions {
 		}
 		return result;
 	}
-
-	//
-	// /**
-	// *
-	// * @param con
-	// * Connection to be used
-	// * @param parameters
-	// * JSON Object with the following parameters:<br>
-	// * facility_id : (int),<br>
-	// * status : (int),<br>
-	// * <br>
-	// * Additionally Key-Value-Pairs in the form of (drug_id (int) :
-	// * unit_number (int)) will have to be added
-	// * @return true if operation succeeded, false otherwise
-	// * @throws SQLException
-	// */
-	// public static boolean addOrder(Connection con, JSONObject parameters) {
-	// if (parameters == null)
-	// return false;
-	//
-	// Set keySet = parameters.keySet();
-	// int keySize = keySet.size();
-	//
-	// if (keySize < 3) {
-	// System.err.println("Not enough Liis, try again!");
-	// return false;
-	// }
-	// String facility_idS = (String) parameters.get("facility_id");
-	// String order_statusS = (String) parameters.get("status");
-	//
-	// if (facility_idS == null || order_statusS == null)
-	// return false;
-	//
-	// Integer facility_id = Integer.valueOf(facility_idS);
-	// Integer status = Integer.valueOf(order_statusS);
-	//
-	// StringBuilder sb = new StringBuilder();
-	// sb.append(ADD_ORDER_START);
-	//
-	// int c = 1;
-	// ArrayDeque<Integer[]> orderNums = new ArrayDeque<Integer[]>();
-	// for (Object keyO : keySet) {
-	// String key = keyO.toString();
-	// String val = parameters.get(keyO).toString();
-	//
-	// if (!key.isEmpty() && key.matches("[0-9]*")
-	// && !val.isEmpty() && val.matches("[0-9]*")) {
-	// if (c > 1)
-	// sb.append(",");
-	// sb.append(ADD_ORDER_VAL);
-	// Integer drug_id = Integer.valueOf(key);
-	// Integer number = Integer.valueOf(val);
-	// Integer[] one = { drug_id, number };
-	// orderNums.add(one);
-	// System.out.println("Parameters fround: " + drug_id + "|"
-	// + number);
-	// c++;
-	// }
-	//
-	// }
-	//
-	// PreparedStatement pstmt;
-	// try {
-	// pstmt = con.prepareStatement(sb.toString());
-	// int p = 1;
-	// pstmt.setInt(p++, facility_id);
-	// pstmt.setInt(p++, status);
-	//
-	// Integer[] orderNum;
-	// System.out.println("OrderNums size: " + orderNums.size());
-	// while ((orderNum = orderNums.poll()) != null) {
-	// pstmt.setInt(p++, orderNum[0]);
-	// pstmt.setInt(p++, orderNum[1]);
-	// }
-	// System.out.println(pstmt.toString());
-	// pstmt.executeUpdate();
-	// return true;
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// }
-	//
-	// return false;
-	// }
-
+	
 	/**
 	 * 
 	 * @param con
@@ -683,36 +600,42 @@ public class DataBaseFunctions {
 		String common_name = (String) parameters.get("common_name");
 		String unit = (String) parameters.get("unit");
 		String unit_details = (String) parameters.get("unit_details");
-		String unit_priceS = (String) parameters.get("unit_price");
-
+		String unit_priceS = String.valueOf(parameters.get("unit_price"));
+		System.out.println(msdcodeS);
+		System.out.println(category_idS);
+		System.out.println(med_name);
+		System.out.println(common_name);
+		System.out.println(unit);
+		System.out.println(unit_details);
+		System.out.println(unit_priceS);
 		String middle = "SET ";
 		int c = 0;
 
 		if (msdcodeS != null)
-			middle += c++ > 0 ? ", " : " " + "msdcode = ?";
+			middle += (c++ > 0 ? ", " : " ") + "msdcode = ?";
 
 		if (category_idS != null)
-			middle += c++ > 0 ? ", " : " " + "category_id = ?";
+			middle += (c++ > 0 ? ", " : " ") + "category_id = ?";
 
 		if (med_name != null)
-			middle += c++ > 0 ? ", " : " " + "med_name = ?";
+			middle += (c++ > 0 ? ", " : " ") + "med_name = ?";
 
 		if (common_name != null)
-			middle += c++ > 0 ? ", " : " " + "common_name = ?";
+			middle += (c++ > 0 ? ", " : " ") + "common_name = ?";
 
 		if (unit != null)
-			middle += c++ > 0 ? ", " : " " + "unit = ?";
+			middle += (c++ > 0 ? ", " : " ") + "unit = ?";
 
 		if (unit_details != null)
-			middle += c++ > 0 ? ", " : " " + "unit_details = ?";
+			middle += (c++ > 0 ? ", " : " ") + "unit_details = ?";
 
 		if (unit_priceS != null)
-			middle += c++ > 0 ? ", " : " " + "unit_price = ?";
+			middle += (c++ > 0 ? ", " : " ") + "unit_price = ?";
 
 		try {
 			PreparedStatement pstmt = con.prepareStatement(UPDATE_DRUG_START
 					+ middle + UPDATE_DRUG_END);
-			
+			System.out.println(pstmt.toString());
 			int p = 1;
 			if (msdcodeS != null)
 				pstmt.setInt(p++, Integer.valueOf(msdcodeS));
@@ -831,8 +754,14 @@ public class DataBaseFunctions {
 	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testUpdateDrug(Connection con) {
 		JSONObject input = new JSONObject();
-		input.put("id", "55");
-		input.put("unit_price", "1305.54");
+		input.put("category_id", "1");
+		input.put("common_name", "Aspirin 3");
+		input.put("id", "2");
+		input.put("med_name", "Acetylsalicylic Acid");
+		input.put("msdcode", "33");
+		input.put("unit", "300mg");
+		input.put("unit_details", "Tablet");
+		input.put("unit_price", 3);
 
 		boolean result = updateDrug(con, input);
 		System.out.println(result);
