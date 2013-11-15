@@ -1,6 +1,8 @@
 package com.test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Array;
@@ -14,6 +16,7 @@ import java.sql.Types;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -24,13 +27,16 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.postgresql.PGStatement;
 import org.postgresql.ds.PGSimpleDataSource;
+
 import com.test.DatabaseStatements;
 
 public class DataBaseFunctions {
-
-	static final String URL = "localhost";
-	static final String USER = "postgres";
-	static final String PASSWORD = "postgres";
+	static boolean loaded = false;
+	static String URL;
+	static String PORT;
+	static String DATABASE;
+	static String USER;
+	static String PASSWORD;
 
 	static PreparedStatement getOrderNonSummarizedStatement = null;
 
@@ -54,17 +60,38 @@ public class DataBaseFunctions {
 
 	private static JSONParser jsonParser = new JSONParser();
 
+	{
+
+	}
+
 	/**
 	 * 
 	 * @return A connection to the database, currently having all rights.
 	 */
 	public static Connection getWebConnection() {
+		if (!loaded) {
+			Properties prop = new Properties();
+			try {
+				// load a properties file from class path, inside static method
+				prop.load(new FileInputStream("connection.properties"));
+
+				URL = prop.getProperty("db_url");
+				PORT = prop.getProperty("db_port");
+				DATABASE = prop.getProperty("db_database");
+				USER = prop.getProperty("db_user");
+				PASSWORD = prop.getProperty("db_password");
+
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+			loaded = true;
+		}
 		try {
 			if (pgSimpleDataSourceWeb == null) {
 				pgSimpleDataSourceWeb = new PGSimpleDataSource();
 				pgSimpleDataSourceWeb.setServerName(URL);
-				pgSimpleDataSourceWeb.setPortNumber(5433);
-				pgSimpleDataSourceWeb.setDatabaseName("chpv1_small");
+				pgSimpleDataSourceWeb.setPortNumber(Integer.valueOf(PORT));
+				pgSimpleDataSourceWeb.setDatabaseName(DATABASE);
 				pgSimpleDataSourceWeb.setUser(USER);
 				pgSimpleDataSourceWeb.setPassword(PASSWORD);
 
@@ -825,7 +852,7 @@ public class DataBaseFunctions {
 	public static void main(String[] args) {
 		Connection con = getWebConnection();
 		// testAddOrder(con);
-		testUpdateDrug(con);
+		// testUpdateDrug(con);
 		// testGetCategories(con);
 		// testGetOrderSummary(con);
 		// tryNewStuff();
@@ -834,7 +861,6 @@ public class DataBaseFunctions {
 		try {
 			con.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
