@@ -58,7 +58,6 @@ public class DataBaseFunctions {
 
 	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
 
-	private static JSONParser jsonParser = new JSONParser();
 
 	{
 
@@ -124,107 +123,6 @@ public class DataBaseFunctions {
 	}
 
 	/**
-	 * Transforms the rows, received through the given ResultSet, into
-	 * JSONObjects and returns them as a JSONArray
-	 * 
-	 * @param resultSet
-	 *            ResultSet to be transformed
-	 * @return JSONArray containing JSONObjects
-	 * @throws SQLException
-	 */
-	@SuppressWarnings("unchecked")
-	private static JSONArray resultSetToJSONArray(ResultSet resultSet)
-			throws SQLException {
-
-		ResultSetMetaData resultMeta = resultSet.getMetaData();
-
-		int columnNumber = resultMeta.getColumnCount();
-		String[] columnNames = new String[columnNumber];
-		Integer[] columnTypes = new Integer[columnNumber];
-		for (int columnIndex = 1; columnIndex <= columnNumber; columnIndex++) {
-			columnNames[columnIndex - 1] = resultMeta
-					.getColumnLabel(columnIndex);
-			columnTypes[columnIndex - 1] = resultMeta
-					.getColumnType(columnIndex);
-
-		}
-
-		JSONArray resultArray = new JSONArray();
-		while (resultSet.next()) {
-			JSONObject jsonRow = resultSetRowToJSONObject(resultSet);
-			resultArray.add(jsonRow);
-		}
-		return resultArray;
-
-	}
-
-	@SuppressWarnings("unchecked")
-	private static void columnIntoJSONObject(String columnName,
-			ResultSet resultSet, int columnType, JSONObject jsonObject)
-			throws SQLException {
-		switch (columnType) {
-		case Types.INTEGER:
-			jsonObject.put(columnName, resultSet.getInt(columnName));
-			break;
-		case Types.TIMESTAMP:
-			jsonObject.put(columnName, resultSet.getTimestamp(columnName)
-					.toString());
-			break;
-		case Types.VARCHAR:
-		case Types.CHAR:
-			String a = resultSet.getString(columnName);
-			try {
-				Object jsonO = a == null ? null : jsonParser.parse(a);
-				if (jsonO == null)
-					jsonObject.put(columnName, null);
-				else if (jsonO instanceof JSONObject)
-					jsonObject.put(columnName, (JSONObject) jsonO);
-				else if (jsonO instanceof JSONArray)
-					jsonObject.put(columnName, (JSONArray) jsonO);
-				else
-					jsonObject.put(columnName, a);
-			} catch (ParseException e) {
-				jsonObject.put(columnName, a);
-			}
-			break;
-		case Types.NUMERIC:
-		case Types.DOUBLE:
-			jsonObject.put(columnName, resultSet.getDouble(columnName));
-			break;
-		default:
-			break;
-		}
-	}
-
-	private static JSONObject resultSetRowToJSONObject(ResultSet resultSet)
-			throws SQLException {
-		ResultSetMetaData resultMeta = resultSet.getMetaData();
-
-		int columnNumber = resultMeta.getColumnCount();
-		String[] columnNames = new String[columnNumber];
-		Integer[] columnTypes = new Integer[columnNumber];
-		for (int columnIndex = 1; columnIndex <= columnNumber; columnIndex++) {
-			columnNames[columnIndex - 1] = resultMeta
-					.getColumnLabel(columnIndex);
-			columnTypes[columnIndex - 1] = resultMeta
-					.getColumnType(columnIndex);
-
-		}
-		// for (String name : columnNames)
-		// System.out.println(name);
-
-		JSONObject jsonRow = new JSONObject();
-		for (int columnIndex = 1; columnIndex <= columnNumber; columnIndex++) {
-			String columnName = columnNames[columnIndex - 1];
-
-			columnIntoJSONObject(columnName, resultSet,
-					columnTypes[columnIndex - 1], jsonRow);
-
-		}
-		return jsonRow;
-	}
-
-	/**
 	 * 
 	 * @param con
 	 *            Connection to be used
@@ -237,7 +135,7 @@ public class DataBaseFunctions {
 		try {
 			System.out.println(getCategoryNamesStatement.toString());
 			resultSet = getCategoryNamesStatement.executeQuery();
-			result = resultSetToJSONArray(resultSet);
+			result = ResultSetHelper.resultSetToJSONArray(resultSet);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -360,7 +258,7 @@ public class DataBaseFunctions {
 			System.out.println(getDrugsStatement.toString());
 			ResultSet rs = getDrugsStatement.executeQuery();
 
-			return resultSetToJSONArray(rs);
+			return ResultSetHelper.resultSetToJSONArray(rs);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -444,7 +342,7 @@ public class DataBaseFunctions {
 
 			ResultSet rs = pstmt.executeQuery();
 
-			return resultSetToJSONArray(rs);
+			return ResultSetHelper.resultSetToJSONArray(rs);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
