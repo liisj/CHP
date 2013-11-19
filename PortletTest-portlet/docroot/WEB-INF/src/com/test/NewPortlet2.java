@@ -473,6 +473,32 @@ public class NewPortlet2 extends MVCPortlet {
         httpResponse.setContentType("application/json;charset=UTF-8");
         ServletResponseUtil.write(httpResponse, contentObj.toJSONString());
 	}
+	
+	
+	@SuppressWarnings("unchecked")
+	@ProcessAction(name = "getTopQuestions")
+	public void getTopQuestions(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		
+		JSONArray list = new JSONArray();
+		JSONObject q1 = new JSONObject();
+		JSONObject q2 = new JSONObject();
+		JSONObject q3 = new JSONObject();
+		q1.put("id", "11");
+		q1.put("question", "Does the child have coughing or difficulty breathing?");
+		q2.put("id", "22");
+		q2.put("question", "Does the child have diarrhea?");
+		q3.put("id", "33");
+		q3.put("question", "Does the child have fever?");
+		list.add(q1);
+		list.add(q2);
+		list.add(q3);
+		
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+        httpResponse.setContentType("application/json;charset=UTF-8");
+        ServletResponseUtil.write(httpResponse, list.toJSONString());
+	}
 		
 	// Very necessary function, please don't delete anything in here
 	@Override

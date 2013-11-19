@@ -1,13 +1,18 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
-
+<!-- 
 <portlet:defineObjects/>
 <%
-PortletURL searchURL = renderResponse.createActionURL();
+/*PortletURL searchURL = renderResponse.createActionURL();
 searchURL.setParameter(
-ActionRequest.ACTION_NAME, "search");
+ActionRequest.ACTION_NAME, "search");*/
 %>
+ -->
 
 <portlet:actionURL name="getTopCategories" var="getTopCategories"
+	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+	<portlet:param name="ajaxAction" value="getData"></portlet:param>
+</portlet:actionURL>
+<portlet:actionURL name="getTopQuestions" var="getTopQuestions"
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
@@ -60,6 +65,36 @@ $(document).ready(function() {
 		};
 		$("#categories").buttonset();
 		
+		var request2 = jQuery.getJSON('<%=getTopQuestions%>');
+		request2.done(function(data) {
+			var questionsDiv = document.getElementById("questions");
+			for (var i in data) {
+				console.log(data[i].id);
+				var questionsSpan = $("<span>");
+				questionsSpan
+					.addClass("questionsSpan")
+					.appendTo(questionsDiv);
+				var questionForm = $("<form>");
+				questionForm
+					.addClass("questionForm")
+					.attr("method","POST")
+					.attr("action","<%=subCategoriesURL.toString()%>")
+					.appendTo(questionsSpan);
+				var questionLink = $("<a>");
+				questionLink
+					.addClass("questionLink")
+					.attr("href","javascript:document.forms['test'].submit()")
+					.attr("id","question_" + i)
+					.html(data[i].question)
+					.appendTo(questionForm);
+				var catId = $("<input>");
+				catId
+					.attr("type","hidden")
+					.attr("name", "question_id")
+					.attr("value", data[i].id)
+					.appendTo(questionForm);
+			};
+		});
 	});
 });
 </script>
@@ -68,26 +103,27 @@ $(document).ready(function() {
 <div class="trainingBody">
 <div class="CHPTitle" align="center">Community Health Portal</div>
 <div class="subTitle" align="center">Learning Materials</div>
-
+<!--
 <div class="search" align="center">
-<form name="<portlet:namespace/>fm" method="POST" action="<%=searchURL %>">
+<form name="<portlet:namespace/>fm" method="POST" action="">
 <input type="text" name="<portlet:namespace/>searchParameters" />
 <input type="submit" value="Search" id="searchMaterials"/>
+  
 <script type="text/javascript">
 $(function() {
 	$("input").button();
 	});
-  </script>
+</script>
 <label for="searchMaterials"></label>
 </form>
 </div>
-
+-->
 <div id="categories">
 <span id="categoriesTitle">Categories for training materials:</span>
 <p/>
 </div>
 <div id="questions"></div>
-
+<span id="questionsTitle">What symptoms does the patient have?</span>
 </div>
 
 </body>
