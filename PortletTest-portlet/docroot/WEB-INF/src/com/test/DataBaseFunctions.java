@@ -59,10 +59,6 @@ public class DataBaseFunctions {
 	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
 
 
-	{
-
-	}
-
 	/**
 	 * 
 	 * @return A connection to the database, currently having all rights.
